@@ -3,7 +3,6 @@
     <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))"/>
 
     <PropertyGroup Label="Build">
-        <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>

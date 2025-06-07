@@ -8,9 +8,11 @@ public class CargoComponent : TypedComponent
     private CargoComponent()
     {
         // reserved for deserialization
+        this.Name = string.Empty;
+        this.Version = string.Empty;
     }
 
-    public CargoComponent(string name, string version, string author = null, string license = null, string source = null)
+    public CargoComponent(string name, string version, string? author = null, string? license = null, string? source = null)
     {
         this.Name = this.ValidateRequiredInput(name, nameof(this.Name), nameof(ComponentType.Cargo));
         this.Version = this.ValidateRequiredInput(version, nameof(this.Version), nameof(ComponentType.Cargo));
