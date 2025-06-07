@@ -7,20 +7,23 @@ public class NuGetComponent : TypedComponent
     private NuGetComponent()
     {
         /* Reserved for deserialization */
+        this.Name = string.Empty;
+        this.Version = string.Empty;
+        this.Authors = [];
     }
 
-    public NuGetComponent(string name, string version, string[] authors = null)
+    public NuGetComponent(string name, string version, string[]? authors = null)
     {
         this.Name = this.ValidateRequiredInput(name, nameof(this.Name), nameof(ComponentType.NuGet));
         this.Version = this.ValidateRequiredInput(version, nameof(this.Version), nameof(ComponentType.NuGet));
-        this.Authors = authors;
+        this.Authors = authors ?? [];
     }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
-    public string[] Authors { get; set; }
+    public string[] Authors { get; set; } = [];
 
     public override ComponentType Type => ComponentType.NuGet;
 

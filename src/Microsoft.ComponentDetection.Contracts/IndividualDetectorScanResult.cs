@@ -21,5 +21,5 @@ public class IndividualDetectorScanResult
     /// <summary>
     /// Gets or sets any additional telemetry details for the scan.
     /// </summary>
-    public Dictionary<string, string> AdditionalTelemetryDetails { get; set; }
+    public Dictionary<string, string> AdditionalTelemetryDetails { get; set; } = new();
 }

@@ -10,7 +10,7 @@ public class NpmComponent : TypedComponent
         /* Reserved for deserialization */
     }
 
-    public NpmComponent(string name, string version, string hash = null, NpmAuthor author = null)
+    public NpmComponent(string name, string version, string? hash = null, NpmAuthor? author = null)
     {
         this.Name = this.ValidateRequiredInput(name, nameof(this.Name), nameof(ComponentType.Npm));
         this.Version = this.ValidateRequiredInput(version, nameof(this.Version), nameof(ComponentType.Npm));
@@ -18,13 +18,13 @@ public class NpmComponent : TypedComponent
         this.Author = author;
     }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
-    public string Hash { get; set; }
+    public string? Hash { get; set; }
 
-    public NpmAuthor Author { get; set; }
+    public NpmAuthor? Author { get; set; }
 
     public override ComponentType Type => ComponentType.Npm;
 

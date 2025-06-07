@@ -14,13 +14,16 @@ public class MavenComponent : TypedComponent
     private MavenComponent()
     {
         /* Reserved for deserialization */
+        this.GroupId = string.Empty;
+        this.ArtifactId = string.Empty;
+        this.Version = string.Empty;
     }
 
-    public string GroupId { get; set; }
+    public string GroupId { get; set; } = string.Empty;
 
-    public string ArtifactId { get; set; }
+    public string ArtifactId { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
     public override ComponentType Type => ComponentType.Maven;
 

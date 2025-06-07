@@ -4,11 +4,11 @@ public class DockerLayer
 {
     // Summary:
     //     the command/script that was executed in order to create the layer.
-    public string CreatedBy { get; set; }
+    public string CreatedBy { get; set; } = string.Empty;
 
     // Summary:
     // The Layer hash (docker inspect) that represents the changes between this layer and the previous layer
-    public string DiffId { get; set; }
+    public string DiffId { get; set; } = string.Empty;
 
     // Summary:
     //     Whether or not this layer was found in the base image of the container

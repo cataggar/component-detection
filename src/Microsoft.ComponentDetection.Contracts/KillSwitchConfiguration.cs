@@ -13,5 +13,5 @@ public class KillSwitchConfiguration
     /// <summary>
     /// Gets or sets the reason for stopping the detection.
     /// </summary>
-    public string ReasonForStoppingDetection { get; set; }
+    public string ReasonForStoppingDetection { get; set; } = string.Empty;
 }

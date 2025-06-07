@@ -36,10 +36,10 @@ public interface ISingleFileComponentRecorder
     void RegisterUsage(
         DetectedComponent detectedComponent,
         bool isExplicitReferencedDependency = false,
-        string parentComponentId = null,
+        string? parentComponentId = null,
         bool? isDevelopmentDependency = null,
         DependencyScope? dependencyScope = null,
-        string targetFramework = null);
+        string? targetFramework = null);
 
     /// <summary>
     /// Register that a package was unable to be processed.

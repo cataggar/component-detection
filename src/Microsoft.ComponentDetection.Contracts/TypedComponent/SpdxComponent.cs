@@ -7,6 +7,12 @@ public class SpdxComponent : TypedComponent
     private SpdxComponent()
     {
         /* Reserved for deserialization */
+        this.SpdxVersion = string.Empty;
+        this.DocumentNamespace = new Uri("about:blank");
+        this.Name = string.Empty;
+        this.Checksum = string.Empty;
+        this.RootElementId = string.Empty;
+        this.Path = string.Empty;
     }
 
     public SpdxComponent(string spdxVersion, Uri documentNamespace, string name, string checksum, string rootElementId, string path)
@@ -21,17 +27,17 @@ public class SpdxComponent : TypedComponent
 
     public override ComponentType Type => ComponentType.Spdx;
 
-    public string RootElementId { get; set; }
+    public string RootElementId { get; set; } = string.Empty;
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string SpdxVersion { get; set; }
+    public string SpdxVersion { get; set; } = string.Empty;
 
-    public Uri DocumentNamespace { get; set; }
+    public Uri DocumentNamespace { get; set; } = new Uri("about:blank");
 
-    public string Checksum { get; set; }
+    public string Checksum { get; set; } = string.Empty;
 
-    public string Path { get; set; }
+    public string Path { get; set; } = string.Empty;
 
     protected override string ComputeId() => $"{this.Name}-{this.SpdxVersion}-{this.Checksum}";
 }

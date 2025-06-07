@@ -11,6 +11,7 @@ public class LinuxComponent : TypedComponent
         this.Distribution = string.Empty;
         this.Release = string.Empty;
         this.Name = string.Empty;
+        this.Version = string.Empty;
     }
 
     public LinuxComponent(string distribution, string release, string name, string version, string? license = null, string? author = null)
@@ -23,13 +24,13 @@ public class LinuxComponent : TypedComponent
         this.Author = author;
     }
 
-    public string Distribution { get; set; }
+    public string Distribution { get; set; } = string.Empty;
 
-    public string Release { get; set; }
+    public string Release { get; set; } = string.Empty;
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
     public string? License { get; set; }
 

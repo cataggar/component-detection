@@ -15,7 +15,7 @@ using PackageUrl;
 public abstract class TypedComponent
 {
     [JsonIgnore]
-    private string id;
+    private string? id;
 
     internal TypedComponent()
     {
@@ -29,7 +29,7 @@ public abstract class TypedComponent
     /// <summary>Gets the id of the component.</summary>
     public string Id => this.id ??= this.ComputeId();
 
-    public virtual PackageURL PackageUrl { get; }
+    public virtual PackageURL PackageUrl { get; } = null!;
 
     [JsonIgnore]
     internal string DebuggerDisplay => $"{this.Id}";
@@ -43,8 +43,7 @@ public abstract class TypedComponent
 
     protected T ValidateRequiredInput<T>(T input, string fieldName, string componentType)
     {
-        // Null coalescing for generic types is not available until C# 8
-        return EqualityComparer<T>.Default.Equals(input, default(T)) ? throw new ArgumentNullException(fieldName, this.NullPropertyExceptionMessage(fieldName, componentType)) : input;
+        return EqualityComparer<T>.Default.Equals(input, default!) ? throw new ArgumentNullException(fieldName, this.NullPropertyExceptionMessage(fieldName, componentType)) : input;
     }
 
     protected string NullPropertyExceptionMessage(string propertyName, string componentType)

@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace Microsoft.ComponentDetection.Contracts;
 
 using System.Collections.Generic;
@@ -21,7 +23,7 @@ public class ScanRequest
     /// <param name="maxThreads">Max number of threads to use for detection.</param>
     /// <param name="cleanupCreatedFiles">Whether or not to cleanup files that are created during detection.</param>
     /// <param name="sourceFileRoot">Directory where source files can be found. In most scenarios this will be the same as <paramref name="sourceDirectory"/> but source code can be a different folder.</param>
-    public ScanRequest(DirectoryInfo sourceDirectory, ExcludeDirectoryPredicate directoryExclusionPredicate, ILogger logger, IDictionary<string, string> detectorArgs, IEnumerable<string> imagesToScan, IComponentRecorder componentRecorder, int maxThreads = 5, bool cleanupCreatedFiles = true, DirectoryInfo sourceFileRoot = null)
+    public ScanRequest(DirectoryInfo sourceDirectory, ExcludeDirectoryPredicate directoryExclusionPredicate, ILogger logger, IDictionary<string, string> detectorArgs, IEnumerable<string> imagesToScan, IComponentRecorder componentRecorder, int maxThreads = 5, bool cleanupCreatedFiles = true, DirectoryInfo? sourceFileRoot = null)
     {
         this.SourceDirectory = sourceDirectory;
         this.DirectoryExclusionPredicate = directoryExclusionPredicate;
@@ -41,7 +43,7 @@ public class ScanRequest
     /// <summary>
     /// Directory where source files can be found.
     /// </summary>
-    public DirectoryInfo SourceFileRoot { get; private set; }
+    public DirectoryInfo? SourceFileRoot { get; private set; }
 
     /// <summary>
     /// Gets a predicate which evaluates directories, if the predicate returns true the directory will be excluded.
