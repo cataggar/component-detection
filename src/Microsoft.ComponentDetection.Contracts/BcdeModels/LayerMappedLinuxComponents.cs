@@ -5,6 +5,6 @@ using Microsoft.ComponentDetection.Contracts.TypedComponent;
 
 public class LayerMappedLinuxComponents
 {
-    public IEnumerable<LinuxComponent> LinuxComponents { get; set; } = null!;
+    public IEnumerable<LinuxComponent> LinuxComponents { get; set; } = new List<LinuxComponent>();
     public DockerLayer DockerLayer { get; set; } = null!;
 }

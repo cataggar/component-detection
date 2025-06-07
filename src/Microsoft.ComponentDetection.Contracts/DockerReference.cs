@@ -79,18 +79,23 @@ public class DockerReference
 
 public class Reference
 {
-    public string Tag { get; set; }
+    public string Tag { get; set; } = string.Empty;
 
-    public string Digest { get; set; }
+    public string Digest { get; set; } = string.Empty;
 
-    public string Repository { get; set; }
+    public string Repository { get; set; } = string.Empty;
 
-    public string Domain { get; set; }
+    public string Domain { get; set; } = string.Empty;
 }
 
 // sha256:abc123...
 public class DigestReference : DockerReference
 {
+    public DigestReference()
+    {
+        this.Digest = string.Empty;
+    }
+
     public string Digest { get; set; }
 
     public override DockerReferenceKind Kind { get; } = DockerReferenceKind.Digest;
@@ -112,6 +117,13 @@ public class DigestReference : DockerReference
 // docker.io/library/ubuntu@sha256:abc123...
 public class CanonicalReference : DockerReference
 {
+    public CanonicalReference()
+    {
+        this.Domain = string.Empty;
+        this.Repository = string.Empty;
+        this.Digest = string.Empty;
+    }
+
     public string Domain { get; set; }
 
     public string Repository { get; set; }
@@ -139,6 +151,12 @@ public class CanonicalReference : DockerReference
 // docker.io/library/ubuntu
 public class RepositoryReference : DockerReference
 {
+    public RepositoryReference()
+    {
+        this.Domain = string.Empty;
+        this.Repository = string.Empty;
+    }
+
     public string Domain { get; set; }
 
     public string Repository { get; set; }
@@ -163,6 +181,13 @@ public class RepositoryReference : DockerReference
 // docker.io/library/ubuntu:latest
 public class TaggedReference : DockerReference
 {
+    public TaggedReference()
+    {
+        this.Domain = string.Empty;
+        this.Repository = string.Empty;
+        this.Tag = string.Empty;
+    }
+
     public string Domain { get; set; }
 
     public string Repository { get; set; }
@@ -190,6 +215,14 @@ public class TaggedReference : DockerReference
 // docker.io/library/ubuntu:latest@sha256:abc123...
 public class DualReference : DockerReference
 {
+    public DualReference()
+    {
+        this.Domain = string.Empty;
+        this.Repository = string.Empty;
+        this.Tag = string.Empty;
+        this.Digest = string.Empty;
+    }
+
     public string Domain { get; set; }
 
     public string Repository { get; set; }

@@ -29,7 +29,7 @@ public abstract class TypedComponent
     /// <summary>Gets the id of the component.</summary>
     public string Id => this.id ??= this.ComputeId();
 
-    public virtual PackageURL PackageUrl { get; } = null!;
+    public virtual PackageURL? PackageUrl { get; }
 
     [JsonIgnore]
     internal string DebuggerDisplay => $"{this.Id}";
