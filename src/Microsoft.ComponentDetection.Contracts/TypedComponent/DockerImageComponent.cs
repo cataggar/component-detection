@@ -18,10 +18,12 @@ public class DockerImageComponent : TypedComponent
     }
 
     public string? Name { get; set; } = string.Empty;
+
     public string Digest { get; set; } = string.Empty;
+
     public string? Tag { get; set; } = string.Empty;
 
     public override ComponentType Type => ComponentType.DockerImage;
 
-    protected override string ComputeId() => $"{this.Name} {this.Tag} {this.Digest}";
+    protected override string ComputeId() => $"{this.Name ?? string.Empty} {this.Tag ?? string.Empty} {this.Digest}";
 }

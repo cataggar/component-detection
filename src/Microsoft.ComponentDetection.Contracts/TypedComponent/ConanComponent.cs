@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace Microsoft.ComponentDetection.Contracts.TypedComponent;
 
 using PackageUrl;

@@ -14,31 +14,34 @@ public class DockerReferenceComponent : TypedComponent
         this.Reference = reference;
         this.Repository = reference switch
         {
-            CanonicalReference c => c.Repository,
-            RepositoryReference r => r.Repository,
-            TaggedReference t => t.Repository,
-            DualReference d => d.Repository,
+            CanonicalReference c => c.Repository ?? string.Empty,
+            RepositoryReference r => r.Repository ?? string.Empty,
+            TaggedReference t => t.Repository ?? string.Empty,
+            DualReference d => d.Repository ?? string.Empty,
             _ => string.Empty,
         };
+
         this.Domain = reference switch
         {
-            CanonicalReference c => c.Domain,
-            RepositoryReference r => r.Domain,
-            TaggedReference t => t.Domain,
-            DualReference d => d.Domain,
+            CanonicalReference c => c.Domain ?? string.Empty,
+            RepositoryReference r => r.Domain ?? string.Empty,
+            TaggedReference t => t.Domain ?? string.Empty,
+            DualReference d => d.Domain ?? string.Empty,
             _ => string.Empty,
         };
+
         this.Tag = reference switch
         {
-            TaggedReference t => t.Tag,
-            DualReference d => d.Tag,
+            TaggedReference t => t.Tag ?? string.Empty,
+            DualReference d => d.Tag ?? string.Empty,
             _ => string.Empty,
         };
+
         this.Digest = reference switch
         {
-            CanonicalReference c => c.Digest,
-            DigestReference d => d.Digest,
-            DualReference du => du.Digest,
+            CanonicalReference c => c.Digest ?? string.Empty,
+            DigestReference d => d.Digest ?? string.Empty,
+            DualReference du => du.Digest ?? string.Empty,
             _ => string.Empty,
         };
     }
@@ -53,9 +56,13 @@ public class DockerReferenceComponent : TypedComponent
     }
 
     public string? Repository { get; set; }
+
     public string Digest { get; set; } = string.Empty;
+
     public string? Tag { get; set; }
+
     public string? Domain { get; set; }
+
     public DockerReference Reference { get; set; } = default!;
 
     public override ComponentType Type => ComponentType.DockerReference;
@@ -64,7 +71,7 @@ public class DockerReferenceComponent : TypedComponent
     {
         get
         {
-            return DockerReference.CreateDockerReference(this.Repository, this.Domain, this.Digest, this.Tag);
+            return DockerReference.CreateDockerReference(this.Repository ?? string.Empty, this.Domain ?? string.Empty, this.Digest ?? string.Empty, this.Tag ?? string.Empty);
         }
     }
 
