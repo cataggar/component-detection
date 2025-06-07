@@ -38,7 +38,7 @@ public class LinuxComponent : TypedComponent
 
     public override ComponentType Type => ComponentType.Linux;
 
-    public override PackageURL? PackageUrl
+    public override PackageURL PackageUrl
     {
         get
         {
@@ -58,7 +58,8 @@ public class LinuxComponent : TypedComponent
                 return new PackageURL(packageType, this.Distribution, this.Name, this.Version, null, null);
             }
 
-            return null;
+            // Return a dummy non-null PackageURL to satisfy the non-nullable contract
+            return new PackageURL("generic", this.Distribution, this.Name, this.Version, null, null);
         }
     }
 

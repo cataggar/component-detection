@@ -11,11 +11,36 @@ public class DockerReferenceComponent : TypedComponent
 
     public DockerReferenceComponent(DockerReference reference)
     {
-        // TODO: Implement initialization from DockerReference if needed
-        this.Repository = string.Empty;
-        this.Digest = string.Empty;
-        this.Tag = string.Empty;
-        this.Domain = string.Empty;
+        this.Reference = reference;
+        this.Repository = reference switch
+        {
+            CanonicalReference c => c.Repository,
+            RepositoryReference r => r.Repository,
+            TaggedReference t => t.Repository,
+            DualReference d => d.Repository,
+            _ => string.Empty,
+        };
+        this.Domain = reference switch
+        {
+            CanonicalReference c => c.Domain,
+            RepositoryReference r => r.Domain,
+            TaggedReference t => t.Domain,
+            DualReference d => d.Domain,
+            _ => string.Empty,
+        };
+        this.Tag = reference switch
+        {
+            TaggedReference t => t.Tag,
+            DualReference d => d.Tag,
+            _ => string.Empty,
+        };
+        this.Digest = reference switch
+        {
+            CanonicalReference c => c.Digest,
+            DigestReference d => d.Digest,
+            DualReference du => du.Digest,
+            _ => string.Empty,
+        };
     }
 
     private DockerReferenceComponent()
@@ -31,6 +56,7 @@ public class DockerReferenceComponent : TypedComponent
     public string Digest { get; set; } = string.Empty;
     public string? Tag { get; set; }
     public string? Domain { get; set; }
+    public DockerReference Reference { get; set; } = default!;
 
     public override ComponentType Type => ComponentType.DockerReference;
 

@@ -16,10 +16,10 @@ public class IndividualDetectorScanResult
     /// <summary>
     /// Gets or sets the list of containers found during the scan.
     /// </summary>
-    public IEnumerable<ContainerDetails> ContainerDetails { get; set; } = [];
+    public List<ContainerDetails> ContainerDetails { get; set; } = [];
 
     /// <summary>
     /// Gets or sets any additional telemetry details for the scan.
     /// </summary>
-    public Dictionary<string, string> AdditionalTelemetryDetails { get; set; } = new();
+    public Dictionary<string, string> AdditionalTelemetryDetails { get; set; } = [];
 }

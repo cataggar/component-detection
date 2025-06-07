@@ -18,18 +18,18 @@ public class DetectedComponent
     public DetectedComponent(TypedComponent.TypedComponent component, IComponentDetector? detector = null, int? containerDetailsId = null, int? containerLayerId = null)
     {
         this.Component = component;
-        this.FilePaths = new HashSet<string>();
+        this.FilePaths = [];
         this.DetectedBy = detector;
-        this.ContainerDetailIds = new HashSet<int>();
-        this.ContainerLayerIds = new Dictionary<int, IEnumerable<int>>();
-        this.TargetFrameworks = new ConcurrentHashSet<string>();
+        this.ContainerDetailIds = [];
+        this.ContainerLayerIds = [];
+        this.TargetFrameworks = [];
 
         if (containerDetailsId.HasValue)
         {
             this.ContainerDetailIds.Add(containerDetailsId.Value);
             if (containerLayerId.HasValue)
             {
-                this.ContainerLayerIds.Add(containerDetailsId.Value, new List<int> { containerLayerId.Value });
+                this.ContainerLayerIds.Add(containerDetailsId.Value, [containerLayerId.Value]);
             }
         }
     }
@@ -43,7 +43,7 @@ public class DetectedComponent
     public TypedComponent.TypedComponent Component { get; private set; }
 
     /// <summary> Gets or sets the hashset containing the file paths associated with the component. </summary>
-    public HashSet<string> FilePaths { get; set; } = new HashSet<string>();
+    public HashSet<string> FilePaths { get; set; } = [];
 
     /// <summary> Gets or sets the dependency roots for this component. </summary>
     public HashSet<TypedComponent.TypedComponent>? DependencyRoots { get; set; }
@@ -56,16 +56,16 @@ public class DetectedComponent
     public bool? DevelopmentDependency { get; set; }
 
     /// <summary> Gets or sets the details of the container where this component was found.</summary>
-    public HashSet<int> ContainerDetailIds { get; set; } = new HashSet<int>();
+    public HashSet<int> ContainerDetailIds { get; set; } = [];
 
     /// <summary> Gets or sets the layer within a container where this component was found.</summary>
-    public IDictionary<int, IEnumerable<int>> ContainerLayerIds { get; set; } = new Dictionary<int, IEnumerable<int>>();
+    public Dictionary<int, IEnumerable<int>> ContainerLayerIds { get; set; } = [];
 
     /// <summary> Gets or sets Dependency Scope of the component.</summary>
     public DependencyScope? DependencyScope { get; set; }
 
     /// <summary> Gets Target Frameworks where the component was consumed.</summary>
-    public ConcurrentHashSet<string> TargetFrameworks { get; set; } = new ConcurrentHashSet<string>();
+    public ConcurrentHashSet<string> TargetFrameworks { get; set; } = [];
 
     private string DebuggerDisplay => $"{this.Component.DebuggerDisplay}";
 

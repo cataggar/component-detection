@@ -17,9 +17,9 @@ public class DockerImageComponent : TypedComponent
         this.Tag = tag ?? string.Empty;
     }
 
-    public string? Name { get; set; }
+    public string? Name { get; set; } = string.Empty;
     public string Digest { get; set; } = string.Empty;
-    public string? Tag { get; set; }
+    public string? Tag { get; set; } = string.Empty;
 
     public override ComponentType Type => ComponentType.DockerImage;
 

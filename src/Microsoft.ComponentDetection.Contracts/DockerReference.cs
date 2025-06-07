@@ -91,27 +91,18 @@ public class Reference
 // sha256:abc123...
 public class DigestReference : DockerReference
 {
-    public DigestReference()
-    {
-        this.Digest = string.Empty;
-    }
+    public DigestReference() => this.Digest = string.Empty;
 
     public string Digest { get; set; }
 
     public override DockerReferenceKind Kind { get; } = DockerReferenceKind.Digest;
 
-    public override string ToString()
-    {
-        return $"{this.Digest}";
-    }
+    public override string ToString() => $"{this.Digest}";
 
-    public override TypedComponent.DockerReferenceComponent ToTypedDockerReferenceComponent()
+    public override TypedComponent.DockerReferenceComponent ToTypedDockerReferenceComponent() => new TypedComponent.DockerReferenceComponent(this)
     {
-        return new TypedComponent.DockerReferenceComponent(this)
-        {
-            Digest = this.Digest,
-        };
-    }
+        Digest = this.Digest,
+    };
 }
 
 // docker.io/library/ubuntu@sha256:abc123...
