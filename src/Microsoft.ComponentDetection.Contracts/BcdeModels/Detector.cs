@@ -9,12 +9,12 @@ using Newtonsoft.Json.Serialization;
 [JsonObject(MemberSerialization.OptOut, NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 public class Detector
 {
-    public string DetectorId { get; set; }
+    public string DetectorId { get; set; } = string.Empty;
 
     public bool IsExperimental { get; set; }
 
     public int Version { get; set; }
 
     [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
-    public IEnumerable<ComponentType> SupportedComponentTypes { get; set; }
+    public IEnumerable<ComponentType> SupportedComponentTypes { get; set; } = [];
 }

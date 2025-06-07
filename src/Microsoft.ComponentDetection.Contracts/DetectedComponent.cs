@@ -15,7 +15,7 @@ public class DetectedComponent
     /// <param name="detector">The detector that detected this component.</param>
     /// <param name="containerDetailsId">Id of the containerDetails, this is only necessary if the component was found inside a container.</param>
     /// <param name="containerLayerId">Id of the layer the component was found, this is only necessary if the component was found inside a container.</param>
-    public DetectedComponent(TypedComponent.TypedComponent component, IComponentDetector detector = null, int? containerDetailsId = null, int? containerLayerId = null)
+    public DetectedComponent(TypedComponent.TypedComponent component, IComponentDetector? detector = null, int? containerDetailsId = null, int? containerLayerId = null)
     {
         this.Component = component;
         this.FilePaths = [];
@@ -37,7 +37,7 @@ public class DetectedComponent
     /// <summary>
     /// Gets or sets the detector that detected this component.
     /// </summary>
-    public IComponentDetector DetectedBy { get; set; }
+    public IComponentDetector? DetectedBy { get; set; }
 
     /// <summary>Gets the component associated with this detection.</summary>
     public TypedComponent.TypedComponent Component { get; private set; }
@@ -46,10 +46,10 @@ public class DetectedComponent
     public HashSet<string> FilePaths { get; set; }
 
     /// <summary> Gets or sets the dependency roots for this component. </summary>
-    public HashSet<TypedComponent.TypedComponent> DependencyRoots { get; set; }
+    public HashSet<TypedComponent.TypedComponent>? DependencyRoots { get; set; }
 
     /// <summary> Gets or sets the ancester dependency for this component. </summary>
-    public HashSet<TypedComponent.TypedComponent> AncestralDependencyRoots { get; set; }
+    public HashSet<TypedComponent.TypedComponent>? AncestralDependencyRoots { get; set; }
 
     /// <summary>Gets or sets the flag to mark the component as a development dependency or not.
     /// This is used at build or development time not a distributed dependency.</summary>

@@ -8,9 +8,12 @@ public class LinuxComponent : TypedComponent
     private LinuxComponent()
     {
         /* Reserved for deserialization */
+        this.Distribution = string.Empty;
+        this.Release = string.Empty;
+        this.Name = string.Empty;
     }
 
-    public LinuxComponent(string distribution, string release, string name, string version, string license = null, string author = null)
+    public LinuxComponent(string distribution, string release, string name, string version, string? license = null, string? author = null)
     {
         this.Distribution = this.ValidateRequiredInput(distribution, nameof(this.Distribution), nameof(ComponentType.Linux));
         this.Release = this.ValidateRequiredInput(release, nameof(this.Release), nameof(ComponentType.Linux));
@@ -28,19 +31,17 @@ public class LinuxComponent : TypedComponent
 
     public string Version { get; set; }
 
-#nullable enable
     public string? License { get; set; }
 
     public string? Author { get; set; }
-#nullable disable
 
     public override ComponentType Type => ComponentType.Linux;
 
-    public override PackageURL PackageUrl
+    public override PackageURL? PackageUrl
     {
         get
         {
-            string packageType = null;
+            string? packageType = null;
 
             if (this.IsUbuntu() || this.IsDebian())
             {

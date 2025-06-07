@@ -23,7 +23,6 @@ public class CargoComponent : TypedComponent
 
     public string Version { get; set; }
 
-#nullable enable
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? Author { get; set; }
 
@@ -32,7 +31,6 @@ public class CargoComponent : TypedComponent
 
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? Source { get; set; }
-#nullable disable
 
     public override ComponentType Type => ComponentType.Cargo;
 
