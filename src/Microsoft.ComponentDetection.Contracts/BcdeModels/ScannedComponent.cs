@@ -1,11 +1,8 @@
 namespace Microsoft.ComponentDetection.Contracts.BcdeModels;
 
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization.OptOut, NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 public class ScannedComponent
 {
     public IEnumerable<string> LocationsFoundAt { get; set; }
@@ -16,7 +13,7 @@ public class ScannedComponent
 
     public bool? IsDevelopmentDependency { get; set; }
 
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public DependencyScope? DependencyScope { get; set; }
 
     public IEnumerable<TypedComponent.TypedComponent> TopLevelReferrers { get; set; }

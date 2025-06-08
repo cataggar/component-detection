@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ComponentDetection.Common;
@@ -12,8 +13,6 @@ using Microsoft.ComponentDetection.Contracts;
 using Microsoft.ComponentDetection.Contracts.Internal;
 using Microsoft.ComponentDetection.Contracts.TypedComponent;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 public abstract class NpmLockfileDetectorBase : FileComponentDetector
 {
@@ -23,9 +22,6 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
 
     private readonly object lernaFilesLock = new object();
 
-    /// <summary>
-    /// Gets or sets the logger for writing basic logging message to both console and file.
-    /// </summary>
     private readonly IPathUtilityService pathUtilityService;
 
     protected NpmLockfileDetectorBase(
@@ -42,10 +38,7 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
 
     protected NpmLockfileDetectorBase(IPathUtilityService pathUtilityService) => this.pathUtilityService = pathUtilityService;
 
-    /// <summary>Common delegate for Package.json JToken processing.</summary>
-    /// <param name="token">A JToken, usually corresponding to a package.json file.</param>
-    /// <returns>Used in scenarios where one file path creates multiple JTokens, a false value indicates processing additional JTokens should be halted, proceed otherwise.</returns>
-    protected delegate bool JTokenProcessingDelegate(JToken token);
+    protected delegate bool JsonNodeProcessingDelegate(JsonNode node);
 
     public override IEnumerable<string> Categories => [Enum.GetName(typeof(DetectorClass), DetectorClass.Npm)];
 
@@ -55,24 +48,23 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
 
     private List<ProcessRequest> LernaFiles { get; } = [];
 
-    /// <inheritdoc />
     protected override IList<string> SkippedFolders => ["node_modules", "pnpm-store"];
 
     protected abstract bool IsSupportedLockfileVersion(int lockfileVersion);
 
-    protected abstract JToken ResolveDependencyObject(JToken packageLockJToken);
+    protected abstract JsonNode ResolveDependencyObject(JsonNode packageLockNode);
 
     protected abstract void EnqueueAllDependencies(
-        IDictionary<string, JProperty> dependencyLookup,
+        IDictionary<string, JsonNode> dependencyLookup,
         ISingleFileComponentRecorder singleFileComponentRecorder,
-        Queue<(JProperty CurrentSubDependency, TypedComponent ParentComponent)> subQueue,
-        JProperty currentDependency,
+        Queue<(JsonNode CurrentSubDependency, TypedComponent ParentComponent)> subQueue,
+        JsonNode currentDependency,
         TypedComponent typedComponent);
 
     protected abstract bool TryEnqueueFirstLevelDependencies(
-        Queue<(JProperty DependencyProperty, TypedComponent ParentComponent)> queue,
-        JToken dependencies,
-        IDictionary<string, JProperty> dependencyLookup,
+        Queue<(JsonNode DependencyNode, TypedComponent ParentComponent)> queue,
+        JsonNode dependencies,
+        IDictionary<string, JsonNode> dependencyLookup,
         TypedComponent parentComponent = null,
         bool skipValidation = false);
 
@@ -117,24 +109,24 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
                 lernaFile.Location,
                 file.Location));
 
-        await this.SafeProcessAllPackageJTokensAsync(file, (token) =>
+        await this.SafeProcessAllPackageJsonNodesAsync(file, (node) =>
         {
             if (!foundUnderLerna &&
-                (token["name"] == null ||
-                 token["version"] == null ||
-                 string.IsNullOrWhiteSpace(token["name"].Value<string>()) ||
-                 string.IsNullOrWhiteSpace(token["version"].Value<string>())))
+                (node["name"] == null ||
+                 node["version"] == null ||
+                 string.IsNullOrWhiteSpace(node["name"].GetValue<string>()) ||
+                 string.IsNullOrWhiteSpace(node["version"].GetValue<string>())))
             {
                 this.Logger.LogInformation("{PackageLogJsonFile} does not contain a valid name and/or version. These are required fields for a valid package-lock.json file. It and its dependencies will not be registered.", file.Location);
                 return false;
             }
 
-            this.ProcessIndividualPackageJTokens(singleFileComponentRecorder, token, packageJsonComponentStream, skipValidation: foundUnderLerna);
+            this.ProcessIndividualPackageJsonNodes(singleFileComponentRecorder, node, packageJsonComponentStream, skipValidation: foundUnderLerna);
             return true;
         });
     }
 
-    protected async Task ProcessAllPackageJTokensAsync(IComponentStream componentStream, JTokenProcessingDelegate jtokenProcessor)
+    protected async Task ProcessAllPackageJsonNodesAsync(IComponentStream componentStream, JsonNodeProcessingDelegate jsonNodeProcessor)
     {
         try
         {
@@ -150,16 +142,15 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
         }
 
         using var file = new StreamReader(componentStream.Stream);
-        using var reader = new JsonTextReader(file);
-
-        var o = await JToken.ReadFromAsync(reader);
-        jtokenProcessor(o);
+        var jsonString = await file.ReadToEndAsync();
+        var node = JsonNode.Parse(jsonString);
+        jsonNodeProcessor(node);
         return;
     }
 
-    private void ProcessIndividualPackageJTokens(ISingleFileComponentRecorder singleFileComponentRecorder, JToken packageLockJToken, IEnumerable<IComponentStream> packageJsonComponentStream, bool skipValidation = false)
+    private void ProcessIndividualPackageJsonNodes(ISingleFileComponentRecorder singleFileComponentRecorder, JsonNode packageLockJsonNode, IEnumerable<IComponentStream> packageJsonComponentStream, bool skipValidation = false)
     {
-        var lockfileVersion = packageLockJToken.Value<int>("lockfileVersion");
+        var lockfileVersion = packageLockJsonNode["lockfileVersion"].GetValue<int>();
         this.RecordLockfileVersion(lockfileVersion);
 
         if (!this.IsSupportedLockfileVersion(lockfileVersion))
@@ -167,20 +158,19 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
             return;
         }
 
-        var dependencies = this.ResolveDependencyObject(packageLockJToken);
-        var topLevelDependencies = new Queue<(JProperty, TypedComponent)>();
+        var dependencies = this.ResolveDependencyObject(packageLockJsonNode);
+        var topLevelDependencies = new Queue<(JsonNode, TypedComponent)>();
 
-        var dependencyLookup = dependencies.Children<JProperty>().ToDictionary(dependency => dependency.Name);
+        var dependencyLookup = dependencies.AsObject().ToDictionary(dependency => dependency.Key, dependency => dependency.Value);
 
         foreach (var stream in packageJsonComponentStream)
         {
             using var file = new StreamReader(stream.Stream);
-            using var reader = new JsonTextReader(file);
-
-            var packageJsonToken = JToken.ReadFrom(reader);
-            var enqueued = this.TryEnqueueFirstLevelDependencies(topLevelDependencies, packageJsonToken["dependencies"], dependencyLookup, skipValidation: skipValidation);
-            enqueued = enqueued && this.TryEnqueueFirstLevelDependencies(topLevelDependencies, packageJsonToken["devDependencies"], dependencyLookup, skipValidation: skipValidation);
-            enqueued = enqueued && this.TryEnqueueFirstLevelDependencies(topLevelDependencies, packageJsonToken["optionalDependencies"], dependencyLookup, skipValidation: skipValidation);
+            var jsonString = file.ReadToEnd();
+            var packageJsonNode = JsonNode.Parse(jsonString);
+            var enqueued = this.TryEnqueueFirstLevelDependencies(topLevelDependencies, packageJsonNode["dependencies"], dependencyLookup, skipValidation: skipValidation);
+            enqueued = enqueued && this.TryEnqueueFirstLevelDependencies(topLevelDependencies, packageJsonNode["devDependencies"], dependencyLookup, skipValidation: skipValidation);
+            enqueued = enqueued && this.TryEnqueueFirstLevelDependencies(topLevelDependencies, packageJsonNode["optionalDependencies"], dependencyLookup, skipValidation: skipValidation);
             if (!enqueued)
             {
                 // This represents a mismatch between lock file and package.json, break out and do not register anything for these files
@@ -270,25 +260,24 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
         });
     }
 
-    private async Task SafeProcessAllPackageJTokensAsync(IComponentStream componentStream, JTokenProcessingDelegate jtokenProcessor)
+    private async Task SafeProcessAllPackageJsonNodesAsync(IComponentStream componentStream, JsonNodeProcessingDelegate jsonNodeProcessor)
     {
         try
         {
-            await this.ProcessAllPackageJTokensAsync(componentStream, jtokenProcessor);
+            await this.ProcessAllPackageJsonNodesAsync(componentStream, jsonNodeProcessor);
         }
         catch (Exception e)
         {
             // If something went wrong, just ignore the component
-            this.Logger.LogInformation(e, "Could not parse Jtokens from {ComponentLocation} file.", componentStream.Location);
+            this.Logger.LogInformation(e, "Could not parse JsonNodes from {ComponentLocation} file.", componentStream.Location);
         }
     }
 
     private void TraverseRequirementAndDependencyTree(
-        IEnumerable<(JProperty Dependency, TypedComponent ParentComponent)> topLevelDependencies,
-        IDictionary<string, JProperty> dependencyLookup,
+        IEnumerable<(JsonNode Dependency, TypedComponent ParentComponent)> topLevelDependencies,
+        IDictionary<string, JsonNode> dependencyLookup,
         ISingleFileComponentRecorder singleFileComponentRecorder)
     {
-        // iterate through everything for a top level dependency with a single explicitReferencedDependency value
         foreach (var (currentDependency, _) in topLevelDependencies)
         {
             var typedComponent = NpmComponentUtilities.GetTypedComponent(currentDependency, NpmRegistryHost, this.Logger);
@@ -298,7 +287,7 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
             }
 
             var previouslyAddedComponents = new HashSet<string> { typedComponent.Id };
-            var subQueue = new Queue<(JProperty, TypedComponent)>();
+            var subQueue = new Queue<(JsonNode, TypedComponent)>();
 
             NpmComponentUtilities.TraverseAndRecordComponents(currentDependency, singleFileComponentRecorder, typedComponent, explicitReferencedDependency: typedComponent);
 
@@ -310,7 +299,6 @@ public abstract class NpmLockfileDetectorBase : FileComponentDetector
 
                 var typedSubComponent = NpmComponentUtilities.GetTypedComponent(currentSubDependency, NpmRegistryHost, this.Logger);
 
-                // only process components that we haven't seen before that have been brought in by the same explicitReferencedDependency, resolves circular npm 'requires' loop
                 if (typedSubComponent == null || previouslyAddedComponents.Contains(typedSubComponent.Id))
                 {
                     continue;

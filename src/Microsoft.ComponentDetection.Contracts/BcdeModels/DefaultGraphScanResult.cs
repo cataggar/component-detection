@@ -1,10 +1,9 @@
 namespace Microsoft.ComponentDetection.Contracts.BcdeModels;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization.OptOut, NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 public class DefaultGraphScanResult : ScanResult
 {
+    [JsonPropertyName("dependencyGraphs")]
     public DependencyGraphCollection DependencyGraphs { get; set; }
 }

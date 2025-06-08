@@ -1,6 +1,6 @@
 namespace Microsoft.ComponentDetection.Contracts.TypedComponent;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using PackageUrl;
 
 public class CargoComponent : TypedComponent
@@ -24,13 +24,13 @@ public class CargoComponent : TypedComponent
     public string Version { get; set; }
 
 #nullable enable
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Author { get; set; }
 
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? License { get; set; }
 
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Source { get; set; }
 #nullable disable
 

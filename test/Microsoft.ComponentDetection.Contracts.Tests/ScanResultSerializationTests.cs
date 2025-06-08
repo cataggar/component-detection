@@ -1,18 +1,24 @@
 namespace Microsoft.ComponentDetection.Contracts.Tests;
 
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using FluentAssertions;
 using Microsoft.ComponentDetection.Contracts.BcdeModels;
 using Microsoft.ComponentDetection.Contracts.TypedComponent;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 [TestClass]
 [TestCategory("Governance/All")]
 [TestCategory("Governance/ComponentDetection")]
 public class ScanResultSerializationTests
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase), new TypedComponentConverter() },
+    };
+
     private ScanResult scanResultUnderTest;
 
     [TestInitialize]
@@ -59,8 +65,8 @@ public class ScanResultSerializationTests
     [TestMethod]
     public void ScanResultSerialization_HappyPath()
     {
-        var serializedResult = JsonConvert.SerializeObject(this.scanResultUnderTest);
-        var actual = JsonConvert.DeserializeObject<ScanResult>(serializedResult);
+        var serializedResult = JsonSerializer.Serialize(this.scanResultUnderTest, JsonOptions);
+        var actual = JsonSerializer.Deserialize<ScanResult>(serializedResult, JsonOptions);
 
         actual.ResultCode.Should().Be(ProcessingResultCode.PartialSuccess);
         actual.SourceDirectory.Should().Be("D:\\test\\directory");
@@ -91,30 +97,32 @@ public class ScanResultSerializationTests
     [TestMethod]
     public void ScanResultSerialization_ExpectedJsonFormat()
     {
-        var serializedResult = JsonConvert.SerializeObject(this.scanResultUnderTest);
-        var json = JObject.Parse(serializedResult);
+        var serializedResult = JsonSerializer.Serialize(this.scanResultUnderTest, JsonOptions);
+        using var jsonDoc = JsonDocument.Parse(serializedResult);
+        var json = jsonDoc.RootElement;
 
-        json.Value<string>("resultCode").Should().Be("PartialSuccess");
-        json.Value<string>("sourceDirectory").Should().Be("D:\\test\\directory");
-        var foundComponent = json["componentsFound"].First();
+        json.GetProperty("resultCode").GetString().Should().Be("PartialSuccess");
+        json.GetProperty("sourceDirectory").GetString().Should().Be("D:\\test\\directory");
+        var foundComponent = json.GetProperty("componentsFound")[0];
 
-        foundComponent.Value<string>("detectorId").Should().Be("NpmDetectorId");
-        foundComponent.Value<bool>("isDevelopmentDependency").Should().Be(true);
-        foundComponent.Value<string>("dependencyScope").Should().Be("MavenCompile");
-        foundComponent["locationsFoundAt"].First().Value<string>().Should().Be("some/location");
-        foundComponent["component"].Value<string>("type").Should().Be("Npm");
-        foundComponent["component"].Value<string>("name").Should().Be("SampleNpmComponent");
-        foundComponent["component"].Value<string>("version").Should().Be("1.2.3");
+        foundComponent.GetProperty("detectorId").GetString().Should().Be("NpmDetectorId");
+        foundComponent.GetProperty("isDevelopmentDependency").GetBoolean().Should().Be(true);
+        foundComponent.GetProperty("dependencyScope").GetString().Should().Be("MavenCompile");
+        foundComponent.GetProperty("locationsFoundAt")[0].GetString().Should().Be("some/location");
+        var component = foundComponent.GetProperty("component");
+        component.GetProperty("type").GetString().Should().Be("Npm");
+        component.GetProperty("name").GetString().Should().Be("SampleNpmComponent");
+        component.GetProperty("version").GetString().Should().Be("1.2.3");
 
-        var rootComponent = foundComponent["topLevelReferrers"].First();
-        rootComponent.Value<string>("type").Should().Be("Npm");
-        rootComponent.Value<string>("name").Should().Be("RootNpmComponent");
-        rootComponent.Value<string>("version").Should().Be("4.5.6");
+        var rootComponent = foundComponent.GetProperty("topLevelReferrers")[0];
+        rootComponent.GetProperty("type").GetString().Should().Be("Npm");
+        rootComponent.GetProperty("name").GetString().Should().Be("RootNpmComponent");
+        rootComponent.GetProperty("version").GetString().Should().Be("4.5.6");
 
-        var detector = json["detectorsInScan"].First();
-        detector.Value<string>("detectorId").Should().Be("NpmDetectorId");
-        detector.Value<int>("version").Should().Be(2);
-        detector.Value<bool>("isExperimental").Should().Be(true);
-        detector["supportedComponentTypes"].First().Value<string>().Should().Be("Npm");
+        var detector = json.GetProperty("detectorsInScan")[0];
+        detector.GetProperty("detectorId").GetString().Should().Be("NpmDetectorId");
+        detector.GetProperty("version").GetInt32().Should().Be(2);
+        detector.GetProperty("isExperimental").GetBoolean().Should().Be(true);
+        detector.GetProperty("supportedComponentTypes")[0].GetString().Should().Be("Npm");
     }
 }

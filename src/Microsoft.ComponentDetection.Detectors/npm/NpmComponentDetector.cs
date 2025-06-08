@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,6 @@ using Microsoft.ComponentDetection.Contracts;
 using Microsoft.ComponentDetection.Contracts.Internal;
 using Microsoft.ComponentDetection.Contracts.TypedComponent;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 public class NpmComponentDetector : FileComponentDetector
 {
@@ -28,10 +28,10 @@ public class NpmComponentDetector : FileComponentDetector
         this.Logger = logger;
     }
 
-    /// <summary>Common delegate for Package.json JToken processing.</summary>
-    /// <param name="token">A JToken, usually corresponding to a package.json file.</param>
-    /// <returns>Used in scenarios where one file path creates multiple JTokens, a false value indicates processing additional JTokens should be halted, proceed otherwise.</returns>
-    protected delegate bool JTokenProcessingDelegate(JToken token);
+    /// <summary>Common delegate for Package.json JsonNode processing.</summary>
+    /// <param name="node">A JsonNode, usually corresponding to a package.json file.</param>
+    /// <returns>Used in scenarios where one file path creates multiple JsonNodes, a false value indicates processing additional JsonNodes should be halted, proceed otherwise.</returns>
+    protected delegate bool JsonNodeProcessingDelegate(JsonNode node);
 
     public override string Id { get; } = "Npm";
 
@@ -56,31 +56,31 @@ public class NpmComponentDetector : FileComponentDetector
             contents = await reader.ReadToEndAsync(cancellationToken);
         }
 
-        await this.SafeProcessAllPackageJTokensAsync(filePath, contents, (token) =>
+        await this.SafeProcessAllPackageJsonNodesAsync(filePath, contents, (node) =>
         {
-            if (token["name"] == null || token["version"] == null)
+            if (node["name"] == null || node["version"] == null)
             {
                 this.Logger.LogInformation("{BadPackageJson} does not contain a name and/or version. These are required fields for a valid package.json file. It and its dependencies will not be registered.", filePath);
                 return false;
             }
 
-            return this.ProcessIndividualPackageJTokens(filePath, singleFileComponentRecorder, token);
+            return this.ProcessIndividualPackageJsonNodes(filePath, singleFileComponentRecorder, node);
         });
     }
 
-    protected virtual Task ProcessAllPackageJTokensAsync(string contents, JTokenProcessingDelegate jtokenProcessor)
+    protected virtual Task ProcessAllPackageJsonNodesAsync(string contents, JsonNodeProcessingDelegate nodeProcessor)
     {
-        var o = JToken.Parse(contents);
-        jtokenProcessor(o);
+        var o = JsonNode.Parse(contents);
+        nodeProcessor(o);
         return Task.CompletedTask;
     }
 
-    protected virtual bool ProcessIndividualPackageJTokens(string filePath, ISingleFileComponentRecorder singleFileComponentRecorder, JToken packageJToken)
+    protected virtual bool ProcessIndividualPackageJsonNodes(string filePath, ISingleFileComponentRecorder singleFileComponentRecorder, JsonNode packageNode)
     {
-        var name = packageJToken["name"].ToString();
-        var version = packageJToken["version"].ToString();
-        var authorToken = packageJToken["author"];
-        var enginesToken = packageJToken["engines"];
+        var name = packageNode["name"]?.GetValue<string>();
+        var version = packageNode["version"]?.GetValue<string>();
+        var authorNode = packageNode["author"];
+        var enginesNode = packageNode["engines"];
 
         if (!SemanticVersion.TryParse(version, out _))
         {
@@ -90,23 +90,22 @@ public class NpmComponentDetector : FileComponentDetector
         }
 
         var containsVsCodeEngine = false;
-        if (enginesToken != null)
+        if (enginesNode != null)
         {
-            if (enginesToken.Type == JTokenType.Array)
+            if (enginesNode is JsonArray arr)
             {
-                var engineStrings = enginesToken
-                    .Children()
-                    .Where(t => t.Type == JTokenType.String)
-                    .Select(t => t.ToString())
+                var engineStrings = arr
+                    .Where(t => t is JsonValue)
+                    .Select(t => t.GetValue<string>())
                     .ToArray();
                 if (engineStrings.Any(e => e.Contains("vscode")))
                 {
                     containsVsCodeEngine = true;
                 }
             }
-            else if (enginesToken.Type == JTokenType.Object)
+            else if (enginesNode is JsonObject obj)
             {
-                if (enginesToken["vscode"] != null)
+                if (obj["vscode"] != null)
                 {
                     containsVsCodeEngine = true;
                 }
@@ -119,64 +118,50 @@ public class NpmComponentDetector : FileComponentDetector
             return false;
         }
 
-        var npmComponent = new NpmComponent(name, version, author: this.GetAuthor(authorToken, name, filePath));
+        var npmComponent = new NpmComponent(name, version, author: this.GetAuthor(authorNode, name, filePath));
 
         singleFileComponentRecorder.RegisterUsage(new DetectedComponent(npmComponent));
         return true;
     }
 
-    private async Task SafeProcessAllPackageJTokensAsync(string sourceFilePath, string contents, JTokenProcessingDelegate jtokenProcessor)
+    private async Task SafeProcessAllPackageJsonNodesAsync(string sourceFilePath, string contents, JsonNodeProcessingDelegate nodeProcessor)
     {
         try
         {
-            await this.ProcessAllPackageJTokensAsync(contents, jtokenProcessor);
+            await this.ProcessAllPackageJsonNodesAsync(contents, nodeProcessor);
         }
         catch (Exception e)
         {
             // If something went wrong, just ignore the component
-            this.Logger.LogInformation(e, "Could not parse Jtokens from file {PackageJsonFilePaths}.", sourceFilePath);
+            this.Logger.LogInformation(e, "Could not parse JsonNodes from file {PackageJsonFilePaths}.", sourceFilePath);
         }
     }
 
-    private NpmAuthor GetAuthor(JToken authorToken, string packageName, string filePath)
+    private NpmAuthor GetAuthor(JsonNode authorNode, string packageName, string filePath)
     {
-        var authorString = authorToken?.ToString();
+        var authorString = authorNode?.ToJsonString();
         if (string.IsNullOrEmpty(authorString))
         {
             return null;
         }
 
-        string authorName;
-        string authorEmail;
-        var authorMatch = SingleAuthor.Match(authorString);
-        /*
-         * for parsing author in Json Format
-         * for e.g.
-         * "author": {
-         *     "name": "John Doe",
-         *     "email": "johndoe@outlook.com",
-         *     "name": "https://jd.com",
-        */
-        if (authorToken.HasValues)
-        {
-            authorName = authorToken["name"]?.ToString();
-            authorEmail = authorToken["email"]?.ToString();
+        string authorName = null;
+        string authorEmail = null;
 
-            /*
-             *  for parsing author in single string format.
-             *  for e.g.
-             *  "author": "John Doe <johdoe@outlook.com> https://jd.com"
-             */
-        }
-        else if (authorMatch.Success)
+        if (authorNode is JsonObject obj)
         {
-            authorName = authorMatch.Groups["name"].ToString().Trim();
-            authorEmail = authorMatch.Groups["email"].ToString().Trim();
+            authorName = obj["name"]?.GetValue<string>();
+            authorEmail = obj["email"]?.GetValue<string>();
         }
-        else
+        else if (authorNode is JsonValue val)
         {
-            this.Logger.LogWarning("Unable to parse author:[{NpmAuthorString}] for package:[{NpmPackageName}] found at path:[{NpmPackageLocation}]. This may indicate an invalid npm package author, and author will not be registered.", authorString, packageName, filePath);
-            return null;
+            var authorStr = val.GetValue<string>();
+            var authorMatch = SingleAuthor.Match(authorStr);
+            if (authorMatch.Success)
+            {
+                authorName = authorMatch.Groups["name"].ToString().Trim();
+                authorEmail = authorMatch.Groups["email"].ToString().Trim();
+            }
         }
 
         if (string.IsNullOrEmpty(authorName))

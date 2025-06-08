@@ -3,18 +3,12 @@ namespace Microsoft.ComponentDetection.Contracts.TypedComponent;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.ComponentDetection.Contracts.BcdeModels;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json.Serialization;
 using PackageUrl;
 
-[JsonObject(MemberSerialization.OptOut, NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-[JsonConverter(typeof(TypedComponentConverter))]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public abstract class TypedComponent
 {
-    [JsonIgnore]
     private string id;
 
     internal TypedComponent()
@@ -23,7 +17,7 @@ public abstract class TypedComponent
     }
 
     /// <summary>Gets the type of the component, must be well known.</summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public abstract ComponentType Type { get; }
 
     /// <summary>Gets the id of the component.</summary>

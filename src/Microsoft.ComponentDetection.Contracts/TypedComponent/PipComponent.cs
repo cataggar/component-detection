@@ -1,7 +1,7 @@
 namespace Microsoft.ComponentDetection.Contracts.TypedComponent;
 
 using System.Diagnostics.CodeAnalysis;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using PackageUrl;
 
 public class PipComponent : TypedComponent
@@ -24,10 +24,10 @@ public class PipComponent : TypedComponent
     public string Version { get; set; }
 
 #nullable enable
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Author { get; set; }
 
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? License { get; set; }
 #nullable disable
 

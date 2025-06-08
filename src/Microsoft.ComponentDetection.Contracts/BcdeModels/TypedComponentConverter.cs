@@ -2,13 +2,13 @@ namespace Microsoft.ComponentDetection.Contracts.BcdeModels;
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.ComponentDetection.Contracts.TypedComponent;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-public class TypedComponentConverter : JsonConverter
+public class TypedComponentConverter : JsonConverter<TypedComponent>
 {
-    private readonly Dictionary<ComponentType, Type> componentTypesToTypes = new Dictionary<ComponentType, Type>
+    private readonly Dictionary<ComponentType, Type> componentTypesToTypes = new()
     {
         { ComponentType.Other, typeof(OtherComponent) },
         { ComponentType.NuGet, typeof(NuGetComponent) },
@@ -30,34 +30,19 @@ public class TypedComponentConverter : JsonConverter
         { ComponentType.DotNet, typeof(DotNetComponent) },
     };
 
-    public override bool CanWrite
+    public override TypedComponent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        get { return false; }
-    }
-
-    public override bool CanConvert(Type objectType)
-    {
-        return objectType == typeof(TypedComponent);
-    }
-
-    public override object ReadJson(
-        JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-    {
-        var jo = JToken.Load(reader);
-
-        var value = (ComponentType)Enum.Parse(typeof(ComponentType), (string)jo["type"]);
+        using var jsonDoc = JsonDocument.ParseValue(ref reader);
+        var root = jsonDoc.RootElement;
+        var typeString = root.GetProperty("type").GetString();
+        var value = (ComponentType)Enum.Parse(typeof(ComponentType), typeString);
         var targetType = this.componentTypesToTypes[value];
-        var instanceOfTypedComponent = Activator.CreateInstance(targetType, true);
-        serializer.Populate(jo.CreateReader(), instanceOfTypedComponent);
-
-        return instanceOfTypedComponent;
+        var json = root.GetRawText();
+        return (TypedComponent)JsonSerializer.Deserialize(json, targetType, options);
     }
 
-    public override void WriteJson(
-        JsonWriter writer,
-        object value,
-        JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, TypedComponent value, JsonSerializerOptions options)
     {
-        throw new NotImplementedException();
+        JsonSerializer.Serialize(writer, value, value.GetType(), options);
     }
 }
