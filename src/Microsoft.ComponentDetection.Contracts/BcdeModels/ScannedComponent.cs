@@ -11,7 +11,7 @@ public class ScannedComponent
     /// <summary>
     /// Gets or sets the locations where the component was found.
     /// </summary>
-    public IEnumerable<string> LocationsFoundAt { get; set; } = new List<string>();
+    public IEnumerable<string> LocationsFoundAt { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the typed component.
@@ -37,17 +37,17 @@ public class ScannedComponent
     /// <summary>
     /// Gets or sets the top-level referrers.
     /// </summary>
-    public IEnumerable<TypedComponent.TypedComponent> TopLevelReferrers { get; set; } = new List<TypedComponent.TypedComponent>();
+    public IEnumerable<TypedComponent.TypedComponent> TopLevelReferrers { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the ancestral referrers.
     /// </summary>
-    public IEnumerable<TypedComponent.TypedComponent> AncestralReferrers { get; set; } = new List<TypedComponent.TypedComponent>();
+    public IEnumerable<TypedComponent.TypedComponent> AncestralReferrers { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the container detail IDs.
     /// </summary>
-    public IEnumerable<int> ContainerDetailIds { get; set; } = new List<int>();
+    public IEnumerable<int> ContainerDetailIds { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the container layer IDs.

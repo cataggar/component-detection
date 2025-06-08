@@ -31,5 +31,5 @@ public class Detector
     /// Gets or sets the supported component types for the detector.
     /// </summary>
     [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
-    public IEnumerable<ComponentType> SupportedComponentTypes { get; set; } = new List<ComponentType>();
+    public IEnumerable<ComponentType> SupportedComponentTypes { get; set; } = [];
 }

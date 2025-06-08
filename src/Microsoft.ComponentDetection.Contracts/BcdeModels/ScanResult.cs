@@ -11,22 +11,22 @@ public class ScanResult
     /// <summary>
     /// Gets or sets the components found during the scan.
     /// </summary>
-    public IEnumerable<ScannedComponent> ComponentsFound { get; set; } = new List<ScannedComponent>();
+    public IEnumerable<ScannedComponent> ComponentsFound { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the detectors that were part of the scan.
     /// </summary>
-    public IEnumerable<Detector> DetectorsInScan { get; set; } = new List<Detector>();
+    public IEnumerable<Detector> DetectorsInScan { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the detectors that were not part of the scan.
     /// </summary>
-    public IEnumerable<Detector> DetectorsNotInScan { get; set; } = new List<Detector>();
+    public IEnumerable<Detector> DetectorsNotInScan { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the mapping of container details.
     /// </summary>
-    public Dictionary<int, ContainerDetails> ContainerDetailsMap { get; set; } = new Dictionary<int, ContainerDetails>();
+    public Dictionary<int, ContainerDetails> ContainerDetailsMap { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the result code of the processing.

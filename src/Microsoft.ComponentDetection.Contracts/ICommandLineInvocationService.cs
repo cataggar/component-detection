@@ -16,7 +16,7 @@ public interface ICommandLineInvocationService
     /// Used to gate logic that requires a command line execution environment.
     /// </summary>
     /// <returns>True if it is a command line execution environment, false otherwise.</returns>
-    bool IsCommandLineExecution();
+    public bool IsCommandLineExecution();
 
     /// <summary>
     /// Checks to see if the given command can be located -- in cases of absolute paths, this is a simple File.Exists. For non-absolute paths, all PATH entries are checked.
@@ -26,7 +26,7 @@ public interface ICommandLineInvocationService
     /// <param name="workingDirectory">The directory under which to execute the command.</param>
     /// <param name="parameters">The parameters that should be passed to the command. The parameters will be space-joined.</param>
     /// <returns>Awaitable task with true if the command can be found in the local environment, false otherwise.</returns>
-    Task<bool> CanCommandBeLocatedAsync(string command, IEnumerable<string> additionalCandidateCommands, DirectoryInfo? workingDirectory, params string[] parameters);
+    public Task<bool> CanCommandBeLocatedAsync(string command, IEnumerable<string> additionalCandidateCommands, DirectoryInfo? workingDirectory, params string[] parameters);
 
     /// <summary>
     /// Checks to see if the given command can be located -- in cases of absolute paths, this is a simple File.Exists. For non-absolute paths, all PATH entries are checked.
@@ -35,7 +35,7 @@ public interface ICommandLineInvocationService
     /// <param name="additionalCandidateCommands">Other commands that could satisfy the need for the first command. Assumption is that they all share similar calling patterns.</param>
     /// <param name="parameters">The parameters that should be passed to the command. The parameters will be space-joined.</param>
     /// <returns>Awaitable task with true if the command can be found in the local environment, false otherwise.</returns>
-    Task<bool> CanCommandBeLocatedAsync(string command, IEnumerable<string> additionalCandidateCommands, params string[] parameters);
+    public Task<bool> CanCommandBeLocatedAsync(string command, IEnumerable<string> additionalCandidateCommands, params string[] parameters);
 
     /// <summary>
     /// Executes a command line command. If the command has not been located yet, CanCommandBeLocated will be invoked without the submitted parameters.
@@ -46,7 +46,7 @@ public interface ICommandLineInvocationService
     /// <param name="cancellationToken">Token used for cancelling the command.</param>
     /// <param name="parameters">The parameters that should be passed to the command. The parameters will be space-joined.</param>
     /// <returns>Awaitable task with the result of executing the command, including exit code.</returns>
-    Task<CommandLineExecutionResult> ExecuteCommandAsync(string command, IEnumerable<string> additionalCandidateCommands, DirectoryInfo? workingDirectory, CancellationToken cancellationToken, params string[] parameters);
+    public Task<CommandLineExecutionResult> ExecuteCommandAsync(string command, IEnumerable<string> additionalCandidateCommands, DirectoryInfo? workingDirectory, CancellationToken cancellationToken, params string[] parameters);
 
     /// <summary>
     /// Executes a command line command. If the command has not been located yet, CanCommandBeLocated will be invoked without the submitted parameters.
@@ -56,7 +56,7 @@ public interface ICommandLineInvocationService
     /// <param name="parameters">The parameters that should be passed to the command. The parameters will be space-joined.</param>
     /// <returns>Awaitable task with the result of executing the command, including exit code.</returns>
     [Obsolete($"This implementation of {nameof(ExecuteCommandAsync)} is deprecated. Please use a version with CancellationTokens.")]
-    Task<CommandLineExecutionResult> ExecuteCommandAsync(string command, IEnumerable<string> additionalCandidateCommands, params string[] parameters);
+    public Task<CommandLineExecutionResult> ExecuteCommandAsync(string command, IEnumerable<string> additionalCandidateCommands, params string[] parameters);
 
     /// <summary>
     /// Executes a command line command. If the command has not been located yet, CanCommandBeLocated will be invoked without the submitted parameters.
@@ -67,7 +67,7 @@ public interface ICommandLineInvocationService
     /// <param name="parameters">The parameters that should be passed to the command. The parameters will be space-joined.</param>
     /// <returns>Awaitable task with the result of executing the command, including exit code.</returns>
     [Obsolete($"This implementation of {nameof(ExecuteCommandAsync)} is deprecated. Please use a version with CancellationTokens.")]
-    Task<CommandLineExecutionResult> ExecuteCommandAsync(string command, IEnumerable<string> additionalCandidateCommands, DirectoryInfo? workingDirectory, params string[] parameters);
+    public Task<CommandLineExecutionResult> ExecuteCommandAsync(string command, IEnumerable<string> additionalCandidateCommands, DirectoryInfo? workingDirectory, params string[] parameters);
 
     /// <summary>
     /// Executes a command line command. If the command has not been located yet, CanCommandBeLocated will be invoked without the submitted parameters.
@@ -77,12 +77,14 @@ public interface ICommandLineInvocationService
     /// <param name="cancellationToken">Token used for cancelling the command.</param>
     /// <param name="parameters">The parameters that should be passed to the command. The parameters will be space-joined.</param>
     /// <returns>Awaitable task with the result of executing the command, including exit code.</returns>
-    Task<CommandLineExecutionResult> ExecuteCommandAsync(string command, IEnumerable<string> additionalCandidateCommands, CancellationToken cancellationToken, params string[] parameters);
+    public Task<CommandLineExecutionResult> ExecuteCommandAsync(string command, IEnumerable<string> additionalCandidateCommands, CancellationToken cancellationToken, params string[] parameters);
 }
 
 public class CommandLineExecutionResult
 {
     public string StdOut { get; set; } = string.Empty;
+
     public string StdErr { get; set; } = string.Empty;
+
     public int ExitCode { get; set; }
 }

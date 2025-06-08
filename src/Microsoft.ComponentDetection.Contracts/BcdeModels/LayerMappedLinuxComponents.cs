@@ -8,7 +8,7 @@ public class LayerMappedLinuxComponents
     /// <summary>
     /// Gets or sets the collection of Linux components.
     /// </summary>
-    public IEnumerable<LinuxComponent> LinuxComponents { get; set; } = new List<LinuxComponent>();
+    public IEnumerable<LinuxComponent> LinuxComponents { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the Docker layer.
