@@ -1,7 +1,7 @@
 namespace Microsoft.ComponentDetection.Detectors.Pip;
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// A specific release of a project on pypy.
@@ -10,7 +10,7 @@ public class PythonProjectRelease
 {
     public string PackageType { get; set; }
 
-    [JsonProperty("python_version")]
+    [JsonPropertyName("python_version")]
     public string PythonVersion { get; set; }
 
     public double Size { get; set; }

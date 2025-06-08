@@ -1,11 +1,8 @@
 namespace Microsoft.ComponentDetection.Contracts.BcdeModels;
 
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization.OptOut, NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 public class ScanResult
 {
     public IEnumerable<ScannedComponent> ComponentsFound { get; set; }
@@ -16,7 +13,7 @@ public class ScanResult
 
     public Dictionary<int, ContainerDetails> ContainerDetailsMap { get; set; }
 
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ProcessingResultCode ResultCode { get; set; }
 
     public string SourceDirectory { get; set; }
