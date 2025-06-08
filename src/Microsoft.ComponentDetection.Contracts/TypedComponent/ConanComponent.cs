@@ -7,6 +7,10 @@ public class ConanComponent : TypedComponent
     private ConanComponent()
     {
         // reserved for deserialization
+        this.Name = string.Empty;
+        this.Version = string.Empty;
+        this.Md5Hash = string.Empty;
+        this.Sha1Hash = string.Empty;
     }
 
     public ConanComponent(string name, string version, string previous, string packageId)
@@ -17,13 +21,13 @@ public class ConanComponent : TypedComponent
         this.Sha1Hash = this.ValidateRequiredInput(packageId, nameof(this.Sha1Hash), nameof(ComponentType.Conan));
     }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
-    public string Md5Hash { get; set; }
+    public string Md5Hash { get; set; } = string.Empty;
 
-    public string Sha1Hash { get; set; }
+    public string Sha1Hash { get; set; } = string.Empty;
 
     public string PackageSourceURL => $"https://conan.io/center/recipes/{this.Name}?version={this.Version}";
 

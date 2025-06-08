@@ -2,7 +2,7 @@ namespace Microsoft.ComponentDetection.Contracts.TypedComponent;
 
 public class CondaComponent : TypedComponent
 {
-    public CondaComponent(string name, string version, string build, string channel, string subdir, string @namespace, string url, string md5)
+    public CondaComponent(string name, string version, string? build, string? channel, string? subdir, string? @namespace, string? url, string? md5)
     {
         this.Name = this.ValidateRequiredInput(name, nameof(this.Name), nameof(ComponentType.Conda));
         this.Version = this.ValidateRequiredInput(version, nameof(this.Version), nameof(ComponentType.Conda));
@@ -17,23 +17,25 @@ public class CondaComponent : TypedComponent
     private CondaComponent()
     {
         /* Reserved for deserialization */
+        this.Name = string.Empty;
+        this.Version = string.Empty;
     }
 
-    public string Build { get; set; }
+    public string? Build { get; set; }
 
-    public string Channel { get; set; }
+    public string? Channel { get; set; }
 
     public string Name { get; set; }
 
-    public string Namespace { get; set; }
+    public string? Namespace { get; set; }
 
-    public string Subdir { get; set; }
+    public string? Subdir { get; set; }
 
     public string Version { get; set; }
 
-    public string Url { get; set; }
+    public string? Url { get; set; }
 
-    public string MD5 { get; set; }
+    public string? MD5 { get; set; }
 
     public override ComponentType Type => ComponentType.Conda;
 

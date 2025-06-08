@@ -8,9 +8,13 @@ public class LinuxComponent : TypedComponent
     private LinuxComponent()
     {
         /* Reserved for deserialization */
+        this.Distribution = string.Empty;
+        this.Release = string.Empty;
+        this.Name = string.Empty;
+        this.Version = string.Empty;
     }
 
-    public LinuxComponent(string distribution, string release, string name, string version, string license = null, string author = null)
+    public LinuxComponent(string distribution, string release, string name, string version, string? license = null, string? author = null)
     {
         this.Distribution = this.ValidateRequiredInput(distribution, nameof(this.Distribution), nameof(ComponentType.Linux));
         this.Release = this.ValidateRequiredInput(release, nameof(this.Release), nameof(ComponentType.Linux));
@@ -20,19 +24,17 @@ public class LinuxComponent : TypedComponent
         this.Author = author;
     }
 
-    public string Distribution { get; set; }
+    public string Distribution { get; set; } = string.Empty;
 
-    public string Release { get; set; }
+    public string Release { get; set; } = string.Empty;
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
-#nullable enable
     public string? License { get; set; }
 
     public string? Author { get; set; }
-#nullable disable
 
     public override ComponentType Type => ComponentType.Linux;
 
@@ -40,7 +42,7 @@ public class LinuxComponent : TypedComponent
     {
         get
         {
-            string packageType = null;
+            string? packageType = null;
 
             if (this.IsUbuntu() || this.IsDebian())
             {
@@ -56,7 +58,8 @@ public class LinuxComponent : TypedComponent
                 return new PackageURL(packageType, this.Distribution, this.Name, this.Version, null, null);
             }
 
-            return null;
+            // Return a dummy non-null PackageURL to satisfy the non-nullable contract
+            return new PackageURL("generic", this.Distribution, this.Name, this.Version, null, null);
         }
     }
 

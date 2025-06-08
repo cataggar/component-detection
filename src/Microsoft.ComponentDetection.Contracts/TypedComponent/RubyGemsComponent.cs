@@ -7,9 +7,11 @@ public class RubyGemsComponent : TypedComponent
     private RubyGemsComponent()
     {
         /* Reserved for deserialization */
+        this.Name = string.Empty;
+        this.Version = string.Empty;
     }
 
-    public RubyGemsComponent(string name, string version, string source = "")
+    public RubyGemsComponent(string name, string version, string? source = null)
     {
         this.Name = this.ValidateRequiredInput(name, nameof(this.Name), nameof(ComponentType.RubyGems));
         this.Version = this.ValidateRequiredInput(version, nameof(this.Version), nameof(ComponentType.RubyGems));
@@ -20,7 +22,7 @@ public class RubyGemsComponent : TypedComponent
 
     public string Version { get; set; }
 
-    public string Source { get; set; }
+    public string? Source { get; set; }
 
     public override ComponentType Type => ComponentType.RubyGems;
 

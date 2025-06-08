@@ -8,16 +8,34 @@ using Newtonsoft.Json.Serialization;
 [JsonObject(MemberSerialization.OptOut, NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 public class ScanResult
 {
-    public IEnumerable<ScannedComponent> ComponentsFound { get; set; }
+    /// <summary>
+    /// Gets or sets the components found during the scan.
+    /// </summary>
+    public IEnumerable<ScannedComponent> ComponentsFound { get; set; } = [];
 
-    public IEnumerable<Detector> DetectorsInScan { get; set; }
+    /// <summary>
+    /// Gets or sets the detectors that were part of the scan.
+    /// </summary>
+    public IEnumerable<Detector> DetectorsInScan { get; set; } = [];
 
-    public IEnumerable<Detector> DetectorsNotInScan { get; set; }
+    /// <summary>
+    /// Gets or sets the detectors that were not part of the scan.
+    /// </summary>
+    public IEnumerable<Detector> DetectorsNotInScan { get; set; } = [];
 
-    public Dictionary<int, ContainerDetails> ContainerDetailsMap { get; set; }
+    /// <summary>
+    /// Gets or sets the mapping of container details.
+    /// </summary>
+    public Dictionary<int, ContainerDetails> ContainerDetailsMap { get; set; } = [];
 
+    /// <summary>
+    /// Gets or sets the result code of the processing.
+    /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public ProcessingResultCode ResultCode { get; set; }
 
-    public string SourceDirectory { get; set; }
+    /// <summary>
+    /// Gets or sets the source directory of the scan.
+    /// </summary>
+    public string SourceDirectory { get; set; } = string.Empty;
 }

@@ -22,13 +22,16 @@ public class GoComponent : TypedComponent, IEquatable<GoComponent>
     private GoComponent()
     {
         /* Reserved for deserialization */
+        this.Name = string.Empty;
+        this.Version = string.Empty;
+        this.Hash = string.Empty;
     }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
-    public string Hash { get; set; }
+    public string Hash { get; set; } = string.Empty;
 
     // Commit should be used in place of version when available
     // https://github.com/package-url/purl-spec/blame/180c46d266c45aa2bd81a2038af3f78e87bb4a25/README.rst#L610

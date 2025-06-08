@@ -22,13 +22,14 @@ public abstract class FileComponentDetectorWithCleanup : FileComponentDetector
 
     protected FileComponentDetectorWithCleanup(IFileUtilityService fileUtilityService, IDirectoryUtilityService directoryUtilityService)
     {
-        this.FileUtilityService = fileUtilityService;
-        this.DirectoryUtilityService = directoryUtilityService;
+        this.FileUtilityService = fileUtilityService ?? throw new ArgumentNullException(nameof(fileUtilityService));
+        this.DirectoryUtilityService = directoryUtilityService ?? throw new ArgumentNullException(nameof(directoryUtilityService));
+        this.CleanupPatterns = Array.Empty<string>();
     }
 
-    protected IFileUtilityService FileUtilityService { get; private set; }
+    protected IFileUtilityService FileUtilityService { get; }
 
-    protected IDirectoryUtilityService DirectoryUtilityService { get; private set; }
+    protected IDirectoryUtilityService DirectoryUtilityService { get; }
 
     /// <summary>
     /// Patterns of files and folders that should be cleaned up after the detector has run, if they were created by the detector.
@@ -54,9 +55,7 @@ public abstract class FileComponentDetectorWithCleanup : FileComponentDetector
 
         // If there are no cleanup patterns, or the relevant file does not have a valid directory, run the process without even
         // determining the files that exist as there will be no subsequent cleanup process.
-        if (this.FileUtilityService == null
-            || this.DirectoryUtilityService == null
-            || !this.TryGetCleanupFileDirectory(processRequest, out var fileParentDirectory)
+        if (!this.TryGetCleanupFileDirectory(processRequest, out var fileParentDirectory)
             || !cleanupCreatedFiles)
         {
             await process(processRequest, detectorArgs, cancellationToken).ConfigureAwait(false);
@@ -136,16 +135,16 @@ public abstract class FileComponentDetectorWithCleanup : FileComponentDetector
         await this.WithCleanupAsync(this.OnFileFoundAsync, processRequest, detectorArgs, cleanupCreatedFiles, cancellationToken).ConfigureAwait(false);
 
     // Confirm that there are existing clean up patterns and that the process request has an existing directory.
-    private bool TryGetCleanupFileDirectory(ProcessRequest processRequest, out string directory)
+    private bool TryGetCleanupFileDirectory(ProcessRequest? processRequest, out string directory)
     {
         directory = string.Empty;
         if (this.CleanupPatterns != null
             && this.CleanupPatterns.Any()
             && processRequest?.ComponentStream?.Location != null
             && Path.GetDirectoryName(processRequest.ComponentStream.Location) != null
-            && this.DirectoryUtilityService.Exists(Path.GetDirectoryName(processRequest.ComponentStream.Location)))
+            && this.DirectoryUtilityService.Exists(Path.GetDirectoryName(processRequest.ComponentStream.Location)!))
         {
-            directory = Path.GetDirectoryName(processRequest.ComponentStream.Location);
+            directory = Path.GetDirectoryName(processRequest.ComponentStream.Location)!;
             return true;
         }
 

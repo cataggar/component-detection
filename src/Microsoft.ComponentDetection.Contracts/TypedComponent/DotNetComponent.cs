@@ -11,7 +11,7 @@ public class DotNetComponent : TypedComponent
         /* Reserved for deserialization */
     }
 
-    public DotNetComponent(string sdkVersion, string targetFramework = null, string projectType = null)
+    public DotNetComponent(string sdkVersion, string? targetFramework = null, string? projectType = null)
     {
         if (string.IsNullOrWhiteSpace(sdkVersion) && string.IsNullOrWhiteSpace(targetFramework))
         {
@@ -19,24 +19,24 @@ public class DotNetComponent : TypedComponent
         }
 
         this.SdkVersion = string.IsNullOrWhiteSpace(sdkVersion) ? UnknownValue : sdkVersion;
-        this.TargetFramework = string.IsNullOrWhiteSpace(targetFramework) ? UnknownValue : targetFramework;
-        this.ProjectType = string.IsNullOrWhiteSpace(projectType) ? UnknownValue : projectType;
+        this.TargetFramework = string.IsNullOrWhiteSpace(targetFramework) ? UnknownValue : targetFramework!;
+        this.ProjectType = string.IsNullOrWhiteSpace(projectType) ? UnknownValue : projectType!;
     }
 
     /// <summary>
     /// SDK Version detected, could be null if no global.json exists and no dotnet is on the path.
     /// </summary>
-    public string SdkVersion { get; set; }
+    public string SdkVersion { get; set; } = string.Empty;
 
     /// <summary>
     /// Target framework for this instance.  Null in the case of global.json.
     /// </summary>
-    public string TargetFramework { get; set; }
+    public string TargetFramework { get; set; } = string.Empty;
 
     /// <summary>
     /// Project type: application, library.  Null in the case of global.json or if no project output could be discovered.
     /// </summary>
-    public string ProjectType { get; set; }
+    public string ProjectType { get; set; } = string.Empty;
 
     public override ComponentType Type => ComponentType.DotNet;
 

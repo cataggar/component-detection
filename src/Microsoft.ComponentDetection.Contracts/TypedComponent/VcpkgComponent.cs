@@ -7,9 +7,15 @@ public class VcpkgComponent : TypedComponent
     private VcpkgComponent()
     {
         /* Reserved for deserialization */
+        this.SPDXID = string.Empty;
+        this.Name = string.Empty;
+        this.Version = string.Empty;
+        this.Triplet = string.Empty;
+        this.Description = string.Empty;
+        this.DownloadLocation = string.Empty;
     }
 
-    public VcpkgComponent(string spdxid, string name, string version, string triplet = null, string portVersion = null, string description = null, string downloadLocation = null)
+    public VcpkgComponent(string spdxid, string name, string version, string? triplet = null, string? portVersion = null, string? description = null, string? downloadLocation = null)
     {
         int.TryParse(portVersion, out var port);
 
@@ -17,22 +23,22 @@ public class VcpkgComponent : TypedComponent
         this.Name = this.ValidateRequiredInput(name, nameof(this.Name), nameof(ComponentType.Vcpkg));
         this.Version = version;
         this.PortVersion = port;
-        this.Triplet = triplet;
-        this.Description = description;
-        this.DownloadLocation = downloadLocation;
+        this.Triplet = triplet ?? string.Empty;
+        this.Description = description ?? string.Empty;
+        this.DownloadLocation = downloadLocation ?? string.Empty;
     }
 
-    public string SPDXID { get; set; }
+    public string SPDXID { get; set; } = string.Empty;
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string DownloadLocation { get; set; }
+    public string DownloadLocation { get; set; } = string.Empty;
 
-    public string Triplet { get; set; }
+    public string Triplet { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     public int PortVersion { get; set; }
 

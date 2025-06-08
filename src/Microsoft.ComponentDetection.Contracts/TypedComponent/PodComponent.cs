@@ -8,6 +8,9 @@ public class PodComponent : TypedComponent
     private PodComponent()
     {
         /* Reserved for deserialization */
+        this.Name = string.Empty;
+        this.Version = string.Empty;
+        this.SpecRepo = string.Empty;
     }
 
     public PodComponent(string name, string version, string specRepo = "")
@@ -17,11 +20,11 @@ public class PodComponent : TypedComponent
         this.SpecRepo = specRepo;
     }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
-    public string SpecRepo { get; set; }
+    public string SpecRepo { get; set; } = string.Empty;
 
     public override ComponentType Type => ComponentType.Pod;
 

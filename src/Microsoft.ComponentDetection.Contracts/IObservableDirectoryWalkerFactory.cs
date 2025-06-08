@@ -9,7 +9,7 @@ public delegate bool ExcludeDirectoryPredicate(ReadOnlySpan<char> nameOfDirector
 
 public interface IObservableDirectoryWalkerFactory
 {
-    void Initialize(DirectoryInfo root, ExcludeDirectoryPredicate directoryExclusionPredicate, int count, IEnumerable<string> filePatterns = null);
+    void Initialize(DirectoryInfo root, ExcludeDirectoryPredicate directoryExclusionPredicate, int count, IEnumerable<string>? filePatterns = null);
 
     IObservable<ProcessRequest> GetFilteredComponentStreamObservable(DirectoryInfo root, IEnumerable<string> patterns, IComponentRecorder componentRecorder);
 }

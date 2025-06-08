@@ -19,16 +19,16 @@ public abstract class FileComponentDetector : IComponentDetector
     /// <summary>
     /// Gets or sets the factory for handing back component streams to File detectors.
     /// </summary>
-    protected IComponentStreamEnumerableFactory ComponentStreamEnumerableFactory { get; set; }
+    protected IComponentStreamEnumerableFactory ComponentStreamEnumerableFactory { get; set; } = null!;
 
-    protected IObservableDirectoryWalkerFactory Scanner { get; set; }
+    protected IObservableDirectoryWalkerFactory Scanner { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the logger for writing basic logging message to both console and file.
     /// </summary>
-    protected ILogger Logger { get; set; }
+    protected ILogger Logger { get; set; } = null!;
 
-    public IComponentRecorder ComponentRecorder { get; private set; }
+    public IComponentRecorder ComponentRecorder { get; private set; } = null!;
 
     /// <inheritdoc />
     public abstract string Id { get; }
@@ -54,18 +54,18 @@ public abstract class FileComponentDetector : IComponentDetector
     /// Gets or sets the active scan request -- only populated after a ScanDirectoryAsync is invoked. If ScanDirectoryAsync is overridden,
     ///  the overrider should ensure this property is populated.
     /// </summary>
-    protected ScanRequest CurrentScanRequest { get; set; }
+    protected ScanRequest CurrentScanRequest { get; set; } = null!;
 
     public virtual bool NeedsAutomaticRootDependencyCalculation { get; protected set; }
 
-    protected ConcurrentDictionary<string, string> Telemetry { get; set; } = [];
+    protected ConcurrentDictionary<string, string> Telemetry { get; set; } = new ConcurrentDictionary<string, string>();
 
     /// <summary>
     /// List of any any additional properties as key-value pairs that we would like to capture for the detector.
     /// </summary>
     public List<(string PropertyKey, string PropertyValue)> AdditionalProperties { get; set; } = [];
 
-    protected IObservable<IComponentStream> ComponentStreams { get; private set; }
+    protected IObservable<IComponentStream> ComponentStreams { get; private set; } = null!;
 
     protected virtual bool EnableParallelism { get; set; }
 

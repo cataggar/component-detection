@@ -7,6 +7,10 @@ public class OtherComponent : TypedComponent
     private OtherComponent()
     {
         /* Reserved for deserialization */
+        this.Name = string.Empty;
+        this.Version = string.Empty;
+        this.DownloadUrl = new Uri("about:blank");
+        this.Hash = string.Empty;
     }
 
     public OtherComponent(string name, string version, Uri downloadUrl, string hash)
@@ -17,13 +21,13 @@ public class OtherComponent : TypedComponent
         this.Hash = hash;
     }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
-    public Uri DownloadUrl { get; set; }
+    public Uri DownloadUrl { get; set; } = new Uri("about:blank");
 
-    public string Hash { get; set; }
+    public string Hash { get; set; } = string.Empty;
 
     public override ComponentType Type => ComponentType.Other;
 
