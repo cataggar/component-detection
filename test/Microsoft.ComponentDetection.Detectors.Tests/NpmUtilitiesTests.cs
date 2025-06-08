@@ -1,6 +1,7 @@
 namespace Microsoft.ComponentDetection.Detectors.Tests;
 
 using System.Linq;
+using System.Text.Json.Nodes;
 using FluentAssertions;
 using Microsoft.ComponentDetection.Common.DependencyGraph;
 using Microsoft.ComponentDetection.Contracts;
@@ -10,7 +11,6 @@ using Microsoft.ComponentDetection.Detectors.Tests.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Newtonsoft.Json.Linq;
 
 [TestClass]
 [TestCategory("Governance/All")]
@@ -36,14 +36,15 @@ public class NpmUtilitiesTests
                 },
             }";
 
-        var j = JObject.Parse(json);
+        var node = JsonNode.Parse(json).AsObject();
+        node["async"]["name"] = "async";
 
-        var componentFromJProperty = NpmComponentUtilities.GetTypedComponent(j.Children<JProperty>().Single(), "registry.npmjs.org", this.loggerMock.Object);
+        var componentFromNode = NpmComponentUtilities.GetTypedComponent(node["async"], "registry.npmjs.org", this.loggerMock.Object);
 
-        componentFromJProperty.Should().NotBeNull();
-        componentFromJProperty.Type.Should().Be(ComponentType.Npm);
+        componentFromNode.Should().NotBeNull();
+        componentFromNode.Type.Should().Be(ComponentType.Npm);
 
-        var npmComponent = (NpmComponent)componentFromJProperty;
+        var npmComponent = (NpmComponent)componentFromNode;
         npmComponent.Name.Should().Be("async");
         npmComponent.Version.Should().Be("2.3.0");
     }
@@ -59,11 +60,12 @@ public class NpmUtilitiesTests
                 },
             }";
 
-        var j = JObject.Parse(json);
+        var node = JsonNode.Parse(json).AsObject();
+        node["async"]["name"] = "async";
 
-        var componentFromJProperty = NpmComponentUtilities.GetTypedComponent(j.Children<JProperty>().Single(), "registry.npmjs.org", this.loggerMock.Object);
+        var componentFromNode = NpmComponentUtilities.GetTypedComponent(node["async"], "registry.npmjs.org", this.loggerMock.Object);
 
-        componentFromJProperty.Should().BeNull();
+        componentFromNode.Should().BeNull();
     }
 
     [TestMethod]
@@ -77,9 +79,10 @@ public class NpmUtilitiesTests
                 },
             }";
 
-        var j = JObject.Parse(jsonInvalidCharacter);
-        var componentFromJProperty = NpmComponentUtilities.GetTypedComponent(j.Children<JProperty>().Single(), "registry.npmjs.org", this.loggerMock.Object);
-        componentFromJProperty.Should().BeNull();
+        var node = JsonNode.Parse(jsonInvalidCharacter).AsObject();
+        node.First().Value["name"] = node.First().Key;
+        var componentFromNode = NpmComponentUtilities.GetTypedComponent(node.First().Value, "registry.npmjs.org", this.loggerMock.Object);
+        componentFromNode.Should().BeNull();
 
         var jsonUrlName = @"{
                 ""http://thisis/my/packagename"": {
@@ -89,9 +92,10 @@ public class NpmUtilitiesTests
                 },
             }";
 
-        j = JObject.Parse(jsonUrlName);
-        componentFromJProperty = NpmComponentUtilities.GetTypedComponent(j.Children<JProperty>().Single(), "registry.npmjs.org", this.loggerMock.Object);
-        componentFromJProperty.Should().BeNull();
+        node = JsonNode.Parse(jsonUrlName).AsObject();
+        node.First().Value["name"] = node.First().Key;
+        componentFromNode = NpmComponentUtilities.GetTypedComponent(node.First().Value, "registry.npmjs.org", this.loggerMock.Object);
+        componentFromNode.Should().BeNull();
 
         var jsonInvalidInitialCharacter1 = @"{
                 ""_async"": {
@@ -101,9 +105,10 @@ public class NpmUtilitiesTests
                 },
             }";
 
-        j = JObject.Parse(jsonInvalidInitialCharacter1);
-        componentFromJProperty = NpmComponentUtilities.GetTypedComponent(j.Children<JProperty>().Single(), "registry.npmjs.org", this.loggerMock.Object);
-        componentFromJProperty.Should().BeNull();
+        node = JsonNode.Parse(jsonInvalidInitialCharacter1).AsObject();
+        node.First().Value["name"] = node.First().Key;
+        componentFromNode = NpmComponentUtilities.GetTypedComponent(node.First().Value, "registry.npmjs.org", this.loggerMock.Object);
+        componentFromNode.Should().BeNull();
 
         var jsonInvalidInitialCharacter2 = @"{
                 "".async"": {
@@ -113,9 +118,10 @@ public class NpmUtilitiesTests
                 },
             }";
 
-        j = JObject.Parse(jsonInvalidInitialCharacter2);
-        componentFromJProperty = NpmComponentUtilities.GetTypedComponent(j.Children<JProperty>().Single(), "registry.npmjs.org", this.loggerMock.Object);
-        componentFromJProperty.Should().BeNull();
+        node = JsonNode.Parse(jsonInvalidInitialCharacter2).AsObject();
+        node.First().Value["name"] = node.First().Key;
+        componentFromNode = NpmComponentUtilities.GetTypedComponent(node.First().Value, "registry.npmjs.org", this.loggerMock.Object);
+        componentFromNode.Should().BeNull();
 
         var longPackageName = new string('a', 214);
         var jsonLongName = $@"{{
@@ -126,9 +132,10 @@ public class NpmUtilitiesTests
                 }},
             }}";
 
-        j = JObject.Parse(jsonLongName);
-        componentFromJProperty = NpmComponentUtilities.GetTypedComponent(j.Children<JProperty>().Single(), "registry.npmjs.org", this.loggerMock.Object);
-        componentFromJProperty.Should().BeNull();
+        node = JsonNode.Parse(jsonLongName).AsObject();
+        node.First().Value["name"] = node.First().Key;
+        componentFromNode = NpmComponentUtilities.GetTypedComponent(node.First().Value, "registry.npmjs.org", this.loggerMock.Object);
+        componentFromNode.Should().BeNull();
     }
 
     [TestMethod]
@@ -160,9 +167,9 @@ public class NpmUtilitiesTests
                 },
             }";
 
-        var jsonChildren = JObject.Parse(json).Children<JProperty>();
-        var currentDependency = jsonChildren.Single();
-        var dependencyLookup = jsonChildren.ToDictionary(dependency => dependency.Name);
+        var node = JsonNode.Parse(json).AsObject();
+        var currentDependency = node.First().Value;
+        currentDependency["name"] = node.First().Key;
 
         var typedComponent = NpmComponentUtilities.GetTypedComponent(currentDependency, "registry.npmjs.org", this.loggerMock.Object);
         var componentRecorder = new ComponentRecorder();
@@ -192,9 +199,9 @@ public class NpmUtilitiesTests
                 },
             }";
 
-        var jsonChildren1 = JObject.Parse(json1).Children<JProperty>();
-        var currentDependency1 = jsonChildren1.Single();
-        var dependencyLookup1 = jsonChildren1.ToDictionary(dependency => dependency.Name);
+        var node1 = JsonNode.Parse(json1).AsObject();
+        var currentDependency1 = node1.First().Value;
+        currentDependency1["name"] = node1.First().Key;
 
         var typedComponent1 = NpmComponentUtilities.GetTypedComponent(currentDependency1, "registry.npmjs.org", this.loggerMock.Object);
 

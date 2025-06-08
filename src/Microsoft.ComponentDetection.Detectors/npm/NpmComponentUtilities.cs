@@ -4,13 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using global::NuGet.Versioning;
 using Microsoft.ComponentDetection.Contracts;
 using Microsoft.ComponentDetection.Contracts.TypedComponent;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 public static class NpmComponentUtilities
 {
@@ -21,9 +20,9 @@ public static class NpmComponentUtilities
     public static readonly string NodeModules = "node_modules";
     public static readonly string LockFile3EnvFlag = "CD_LOCKFILE_V3_ENABLED";
 
-    public static void TraverseAndRecordComponents(JProperty currentDependency, ISingleFileComponentRecorder singleFileComponentRecorder, TypedComponent component, TypedComponent explicitReferencedDependency, string parentComponentId = null)
+    public static void TraverseAndRecordComponents(JsonNode currentDependency, ISingleFileComponentRecorder singleFileComponentRecorder, TypedComponent component, TypedComponent explicitReferencedDependency, string parentComponentId = null)
     {
-        var isDevDependency = currentDependency.Value["dev"] is JValue devJValue && (bool)devJValue;
+        var isDevDependency = currentDependency?["dev"]?.GetValue<bool?>() ?? false;
         AddOrUpdateDetectedComponent(singleFileComponentRecorder, component, isDevDependency, parentComponentId, isExplicitReferencedDependency: string.Equals(component.Id, explicitReferencedDependency.Id));
     }
 
@@ -39,12 +38,16 @@ public static class NpmComponentUtilities
         return singleFileComponentRecorder.GetComponent(component.Id);
     }
 
-    public static TypedComponent GetTypedComponent(JProperty currentDependency, string npmRegistryHost, ILogger logger)
+    public static TypedComponent GetTypedComponent(JsonNode node, string npmRegistryHost, ILogger logger)
     {
-        var name = GetModuleName(currentDependency.Name);
+        if (node is null)
+        {
+            return null;
+        }
 
-        var version = currentDependency.Value["version"]?.ToString();
-        var hash = currentDependency.Value["integrity"]?.ToString(); // https://docs.npmjs.com/configuring-npm/package-lock-json.html#integrity
+        var name = node["name"]?.GetValue<string>() ?? string.Empty;
+        var version = node["version"]?.GetValue<string>();
+        var hash = node["integrity"]?.GetValue<string>();
 
         if (!IsPackageNameValid(name))
         {
@@ -59,7 +62,7 @@ public static class NpmComponentUtilities
         }
 
         version = result.ToString();
-        TypedComponent component = new NpmComponent(name, version, hash);
+        var component = new NpmComponent(name, version, hash);
         return component;
     }
 
@@ -96,33 +99,31 @@ public static class NpmComponentUtilities
     public static IDictionary<string, IDictionary<string, bool>> TryGetAllPackageJsonDependencies(Stream stream, out IList<string> yarnWorkspaces)
     {
         yarnWorkspaces = [];
-
         using var file = new StreamReader(stream);
-        using var reader = new JsonTextReader(file);
+        var jsonString = file.ReadToEnd();
+        var node = JsonNode.Parse(jsonString);
 
-        IDictionary<string, string> dependencies = new Dictionary<string, string>();
-        IDictionary<string, string> devDependencies = new Dictionary<string, string>();
+        var dependencies = PullDependenciesFromJsonNode(node, "dependencies")
+            .Concat(PullDependenciesFromJsonNode(node, "optionalDependencies"))
+            .ToDictionary(x => x.Key, x => x.Value);
+        var devDependencies = PullDependenciesFromJsonNode(node, "devDependencies");
 
-        var o = JToken.ReadFrom(reader);
-
-        if (o["private"] != null && o["private"].Value<bool>() && o["workspaces"] != null)
+        if (node?["private"]?.GetValue<bool>() == true && node["workspaces"] != null)
         {
-            if (o["workspaces"] is JArray)
+            if (node["workspaces"] is JsonArray arr)
             {
-                yarnWorkspaces = o["workspaces"].Values<string>().ToList();
+                yarnWorkspaces = arr.Select(x => x.GetValue<string>()).ToList();
             }
-            else if (o["workspaces"] is JObject && o["workspaces"]["packages"] != null && o["workspaces"]["packages"] is JArray)
+            else if (node["workspaces"] is JsonObject obj && obj["packages"] is JsonArray arr2)
             {
-                yarnWorkspaces = o["workspaces"]["packages"].Values<string>().ToList();
+                yarnWorkspaces = arr2.Select(x => x.GetValue<string>()).ToList();
             }
         }
 
-        dependencies = PullDependenciesFromJToken(o, "dependencies");
-        dependencies = dependencies.Concat(PullDependenciesFromJToken(o, "optionalDependencies")).ToDictionary(x => x.Key, x => x.Value);
-        devDependencies = PullDependenciesFromJToken(o, "devDependencies");
-
-        var returnedDependencies = AttachDevInformationToDependencies(dependencies, false);
-        return returnedDependencies.Concat(AttachDevInformationToDependencies(devDependencies, true)).GroupBy(x => x.Key).ToDictionary(x => x.Key, x => x.First().Value);
+        return AttachDevInformationToDependencies(dependencies, false)
+            .Concat(AttachDevInformationToDependencies(devDependencies, true))
+            .GroupBy(x => x.Key)
+            .ToDictionary(x => x.Key, x => x.First().Value);
     }
 
     /// <summary>
@@ -143,41 +144,6 @@ public static class NpmComponentUtilities
         return name;
     }
 
-    private static IDictionary<string, IDictionary<string, bool>> AttachDevInformationToDependencies(IDictionary<string, string> dependencies, bool isDev)
-    {
-        IDictionary<string, IDictionary<string, bool>> returnedDependencies = new Dictionary<string, IDictionary<string, bool>>();
-
-        foreach (var item in dependencies)
-        {
-            if (!returnedDependencies.ContainsKey(item.Key))
-            {
-                returnedDependencies[item.Key] = new Dictionary<string, bool>();
-            }
-
-            if (returnedDependencies[item.Key].TryGetValue(item.Value, out var wasDev))
-            {
-                returnedDependencies[item.Key][item.Value] = wasDev && isDev;
-            }
-            else
-            {
-                returnedDependencies[item.Key].Add(item.Value, isDev);
-            }
-        }
-
-        return returnedDependencies;
-    }
-
-    private static IDictionary<string, string> PullDependenciesFromJToken(JToken jObject, string dependencyType)
-    {
-        IDictionary<string, JToken> dependencyJObject = new Dictionary<string, JToken>();
-        if (jObject[dependencyType] != null)
-        {
-            dependencyJObject = (JObject)jObject[dependencyType];
-        }
-
-        return dependencyJObject.ToDictionary(x => x.Key, x => (string)x.Value);
-    }
-
     private static bool IsPackageNameValid(string name)
     {
         if (Uri.TryCreate(name, UriKind.Absolute, out _))
@@ -189,5 +155,30 @@ public static class NpmComponentUtilities
                  || name.StartsWith('.')
                  || name.StartsWith('_')
                  || UnsafeCharactersRegex.IsMatch(name));
+    }
+
+    private static IDictionary<string, IDictionary<string, bool>> AttachDevInformationToDependencies(IDictionary<string, string> dependencies, bool isDev)
+    {
+        var returnedDependencies = new Dictionary<string, IDictionary<string, bool>>();
+        foreach (var item in dependencies)
+        {
+            returnedDependencies[item.Key] = new Dictionary<string, bool> { { item.Value, isDev } };
+        }
+
+        return returnedDependencies;
+    }
+
+    private static IDictionary<string, string> PullDependenciesFromJsonNode(JsonNode node, string dependencyType)
+    {
+        var result = new Dictionary<string, string>();
+        if (node?[dependencyType] is JsonObject depObj)
+        {
+            foreach (var kv in depObj)
+            {
+                result[kv.Key] = kv.Value?.GetValue<string>();
+            }
+        }
+
+        return result;
     }
 }

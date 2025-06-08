@@ -1,11 +1,10 @@
 namespace Microsoft.ComponentDetection.Detectors.Npm;
 
 using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json.Nodes;
 using Microsoft.ComponentDetection.Contracts;
 using Microsoft.ComponentDetection.Contracts.TypedComponent;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 public class NpmComponentDetectorWithRoots : NpmLockfileDetectorBase
 {
@@ -33,12 +32,12 @@ public class NpmComponentDetectorWithRoots : NpmLockfileDetectorBase
 
     protected override bool IsSupportedLockfileVersion(int lockfileVersion) => lockfileVersion != 3;
 
-    protected override JToken ResolveDependencyObject(JToken packageLockJToken) => packageLockJToken["dependencies"];
+    protected override JsonNode ResolveDependencyObject(JsonNode packageLockNode) => packageLockNode?["dependencies"];
 
     protected override bool TryEnqueueFirstLevelDependencies(
-        Queue<(JProperty DependencyProperty, TypedComponent ParentComponent)> queue,
-        JToken dependencies,
-        IDictionary<string, JProperty> dependencyLookup,
+        Queue<(JsonNode DependencyNode, TypedComponent ParentComponent)> queue,
+        JsonNode dependencies,
+        IDictionary<string, JsonNode> dependencyLookup,
         TypedComponent parentComponent = null,
         bool skipValidation = false)
     {
@@ -49,22 +48,19 @@ public class NpmComponentDetectorWithRoots : NpmLockfileDetectorBase
 
         var isValid = true;
 
-        foreach (var dependency in dependencies.Cast<JProperty>())
+        foreach (var dependency in dependencies.AsObject())
         {
-            if (dependency?.Name == null)
+            if (dependency.Key == null)
             {
                 continue;
             }
 
-            var inLock = dependencyLookup.TryGetValue(dependency.Name, out var dependencyProperty);
+            var inLock = dependencyLookup.TryGetValue(dependency.Key, out var dependencyNode);
             if (inLock)
             {
-                queue.Enqueue((dependencyProperty, parentComponent));
+                queue.Enqueue((dependencyNode, parentComponent));
             }
-            else if (skipValidation)
-            {
-            }
-            else
+            else if (!skipValidation)
             {
                 isValid = false;
             }
@@ -74,29 +70,26 @@ public class NpmComponentDetectorWithRoots : NpmLockfileDetectorBase
     }
 
     protected override void EnqueueAllDependencies(
-        IDictionary<string, JProperty> dependencyLookup,
+        IDictionary<string, JsonNode> dependencyLookup,
         ISingleFileComponentRecorder singleFileComponentRecorder,
-        Queue<(JProperty CurrentSubDependency, TypedComponent ParentComponent)> subQueue,
-        JProperty currentDependency,
+        Queue<(JsonNode CurrentSubDependency, TypedComponent ParentComponent)> subQueue,
+        JsonNode currentDependency,
         TypedComponent typedComponent)
     {
-        this.EnqueueDependencies(subQueue, currentDependency.Value["dependencies"], parentComponent: typedComponent);
-        this.TryEnqueueFirstLevelDependencies(subQueue, currentDependency.Value["requires"], dependencyLookup, parentComponent: typedComponent);
+        this.EnqueueDependencies(subQueue, currentDependency?["dependencies"], parentComponent: typedComponent);
+        this.TryEnqueueFirstLevelDependencies(subQueue, currentDependency?["requires"], dependencyLookup, parentComponent: typedComponent);
     }
 
-    private void EnqueueDependencies(Queue<(JProperty Dependency, TypedComponent ParentComponent)> queue, JToken dependencies, TypedComponent parentComponent)
+    private void EnqueueDependencies(Queue<(JsonNode Dependency, TypedComponent ParentComponent)> queue, JsonNode dependencies, TypedComponent parentComponent)
     {
         if (dependencies == null)
         {
             return;
         }
 
-        foreach (var dependency in dependencies.Cast<JProperty>())
+        foreach (var dependency in dependencies.AsObject())
         {
-            if (dependency != null)
-            {
-                queue.Enqueue((dependency, parentComponent));
-            }
+            queue.Enqueue((dependency.Value, parentComponent));
         }
     }
 }
