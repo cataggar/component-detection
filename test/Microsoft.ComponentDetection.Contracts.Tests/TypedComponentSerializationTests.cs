@@ -3,6 +3,8 @@ namespace Microsoft.ComponentDetection.Contracts.Tests;
 using System;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.ComponentDetection.Contracts.BcdeModels;
+using Microsoft.ComponentDetection.Contracts.Internal;
 using Microsoft.ComponentDetection.Contracts.TypedComponent;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +15,7 @@ public class TypedComponentSerializationTests
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        Converters = { new Microsoft.ComponentDetection.Contracts.BcdeModels.TypedComponentConverter() },
+        Converters = { new TypedComponentConverter() },
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
     };
