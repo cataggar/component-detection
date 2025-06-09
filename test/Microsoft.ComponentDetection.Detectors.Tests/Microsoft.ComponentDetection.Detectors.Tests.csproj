@@ -6,6 +6,10 @@
     </ItemGroup>
 
     <ItemGroup Label="Package References">
+        <PackageReference Include="coverlet.collector">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         <PackageReference Include="FluentAssertions.Analyzers" PrivateAssets="all" />
         <PackageReference Include="Microsoft.Extensions.Logging" />
         <PackageReference Include="NuGet.ProjectModel" />
